@@ -1,4 +1,4 @@
-import {DataModel, EdmMapping, DataContext, DataObject} from '../src/core';
+import {DataModel, EdmMapping, DataContext, DataObject} from '@themost/d/core';
 import { TestApplication } from './TestApplication';
 import { resolve } from 'path';
 

@@ -1,9 +1,9 @@
-import {DataApplication} from '../src/core';
-import { ApplicationService, ApplicationBase } from '@themost/common';
+import {DataApplication} from '@themost/d/core';
+import { ApplicationService } from '@themost/common';
 import {resolve} from 'path';
 
 class Service1 extends ApplicationService {
-    constructor(app: ApplicationBase) {
+    constructor(app) {
         super(app);
     }
     getMessage() {
@@ -12,7 +12,7 @@ class Service1 extends ApplicationService {
 }
 
 class Strategy1 extends ApplicationService {
-    constructor(app: ApplicationBase) {
+    constructor(app) {
         super(app);
     }
     getMessage() {

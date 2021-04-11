@@ -1,5 +1,4 @@
-import { DataContext } from '../src/core';
-import { DataApplication } from '../src/core';
+import { DataContext, DataApplication } from '@themost/d/core';
 import { resolve } from 'path';
 
 describe('DataQueryable', () => {

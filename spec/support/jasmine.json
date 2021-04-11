@@ -4,7 +4,10 @@
     "**/*[sS]pec.ts"
   ],
   "helpers": [
-    "helpers/**/*.js"
+    "helpers/module-alias.js",
+    "helpers/babel.js",
+    "helpers/ts.js",
+    "helpers/reporter.js"
   ],
   "stopSpecOnExpectationFailure": false,
   "random": false

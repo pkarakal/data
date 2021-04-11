@@ -1,6 +1,6 @@
 import { IApplication, ConfigurationBase } from "@themost/common";
 import {resolve} from 'path';
-import { DataConfigurationStrategy, NamedDataContext, DataContext } from '../index';
+import { DataConfigurationStrategy, NamedDataContext, DataContext } from '../src/core';
 
 export class TestApplication extends IApplication {
 

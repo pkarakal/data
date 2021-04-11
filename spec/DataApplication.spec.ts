@@ -1,4 +1,4 @@
-import {DataApplication} from '../data-application';
+import {DataApplication} from '../src/core';
 import { ApplicationService, ApplicationBase } from '@themost/common';
 import {resolve} from 'path';
 

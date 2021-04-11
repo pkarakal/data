@@ -1,8 +1,8 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 
-const _ = require('lodash');
-const {QueryUtils, QueryEntity, QueryField} = require('@themost/query');
-const {hasOwnProperty} = require('./has-own-property');
+import { intersection, map, filter } from 'lodash';
+import { QueryUtils, QueryEntity, QueryField } from '@themost/query';
+import { hasOwnProperty } from './has-own-property';
 
 class DataMappingExtensions {
     /**
@@ -281,7 +281,7 @@ class DataMappingExtensions {
                             return reject('The specified field cannot be found on parent model');
                         }
                         let keyField = parentField.property || parentField.name;
-                        let values = _.intersection(_.map(_.filter(arr, function(x) {
+                        let values = intersection(map(filter(arr, function(x) {
                             return hasOwnProperty(x, keyField);
                         }), function (x) {
                             return x[keyField];
@@ -338,6 +338,6 @@ class DataMappingExtensions {
     }
 }
 
-module.exports = {
+export {
     DataMappingExtensions
 };

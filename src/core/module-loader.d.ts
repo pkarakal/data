@@ -3,10 +3,3 @@ export declare abstract class ModuleLoader {
     abstract require(modulePath: string): any;
 
 }
-
-export declare class DefaultModuleLoader extends  ModuleLoader {
-    constructor(executionPath: string);
-    getExecutionPath(): string;
-    require(modulePath: string): any;
-
-}

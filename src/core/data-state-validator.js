@@ -1,9 +1,9 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 
-const _ = require('lodash');
-const {DataNotFoundError} = require('@themost/common');
-const async = require('async');
-const {hasOwnProperty} = require('./has-own-property');
+import { isNil, assign, isArray, isObject } from 'lodash';
+import { DataNotFoundError } from '@themost/common';
+import { eachSeries } from 'async';
+import { hasOwnProperty } from './has-own-property';
 
 /**
  * @class
@@ -21,16 +21,16 @@ class DataStateValidatorListener {
      */
     beforeSave(event, callback) {
         try {
-            if (_.isNil(event)) {
+            if (isNil(event)) {
                 return callback();
             }
-            if (_.isNil(event.state)) {
+            if (isNil(event.state)) {
                 event.state = 1; 
             }
 
             let model = event.model, target = event.target;
             //if model or target is not defined do nothing and exit
-            if (_.isNil(model) || _.isNil(target)) {
+            if (isNil(model) || isNil(target)) {
                 return callback();
             }
             //get key state
@@ -86,16 +86,16 @@ class DataStateValidatorListener {
      */
     beforeRemove(event, callback) {
         //validate event arguments
-        if (_.isNil(event)) {
+        if (isNil(event)) {
             return callback(); 
         }
         //validate state (the default is Delete=4)
-        if (_.isNil(event.state)) {
+        if (isNil(event.state)) {
             event.state = 4; 
         }
         let model = event.model, target = event.target;
         //if model or target is not defined do nothing and exit
-        if (_.isNil(model) || _.isNil(target)) {
+        if (isNil(model) || isNil(target)) {
             return callback();
         }
         //if object primary key is already defined
@@ -109,7 +109,7 @@ class DataStateValidatorListener {
                     return callback();
                 }
                 // otherwise throw error not found
-                return callback(_.assign(new DataNotFoundError('The target object cannot be found or is inaccessible.', null, model.name), {
+                return callback(assign(new DataNotFoundError('The target object cannot be found or is inaccessible.', null, model.name), {
                     'key': target[model.primaryKey]
                 }));
             }).catch(function (err) {
@@ -136,7 +136,7 @@ class DataStateValidatorListener {
  */
 function mapKey_(obj, callback) {
     let self = this;
-    if (_.isNil(obj)) {
+    if (isNil(obj)) {
         return callback(new Error('Object cannot be null at this context'));
     }
     if (self.primaryKey && hasOwnProperty(obj, self.primaryKey)) {
@@ -151,7 +151,7 @@ function mapKey_(obj, callback) {
         //do nothing and exit
         return callback();
     }
-    async.eachSeries(arr, function(constraint, cb) {
+    eachSeries(arr, function(constraint, cb) {
         try {
             if (objectFound) {
                 return cb();
@@ -161,7 +161,7 @@ function mapKey_(obj, callback) {
              */
             let q = null;
             let fnAppendQuery = function(attr, value) {
-                if (_.isNil(value)) {
+                if (isNil(value)) {
                     value = null;
                 }
                 if (q) {
@@ -170,7 +170,7 @@ function mapKey_(obj, callback) {
                     q = self.where(attr).equal(value);
                 }
             };
-            if (_.isArray(constraint.fields)) {
+            if (isArray(constraint.fields)) {
                 for (let i = 0; i < constraint.fields.length; i++) {
                     let attr = constraint.fields[i];
                     if (!hasOwnProperty(obj, attr)) {
@@ -180,7 +180,7 @@ function mapKey_(obj, callback) {
                     let value = parentObj;
                     //check field mapping
                     let mapping = self.inferMapping(attr);
-                    if (_.isObject(mapping) && (typeof parentObj === 'object')) {
+                    if (isObject(mapping) && (typeof parentObj === 'object')) {
                         if (hasOwnProperty(parentObj, mapping.parentField)) {
                             fnAppendQuery(attr, parentObj[mapping.parentField]);
                         } else {
@@ -232,6 +232,6 @@ function mapKey_(obj, callback) {
     });
 }
 
-module.exports = {
+export {
     DataStateValidatorListener
 };

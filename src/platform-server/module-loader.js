@@ -1,7 +1,7 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
-const { ModuleLoader } = require('../core/module-loader');
+import { ModuleLoader } from '@themost/d/core';
 const executionPathProperty = Symbol('executionPath');
-const path = require('path');
+import { resolve, join } from 'path';
 /**
  * @class
  * @param {string} executionPath
@@ -12,7 +12,7 @@ const path = require('path');
 class DefaultModuleLoader extends ModuleLoader {
     constructor(executionPath) {
         super();
-        this[executionPathProperty] = path.resolve(executionPath) || process.cwd();
+        this[executionPathProperty] = resolve(executionPath) || process.cwd();
     }
     getExecutionPath() {
         return this[executionPathProperty];
@@ -29,10 +29,10 @@ class DefaultModuleLoader extends ModuleLoader {
             }
             return require(modulePath);
         }
-        return require(path.join(this.getExecutionPath(), modulePath));
+        return require(join(this.getExecutionPath(), modulePath));
     }
 }
 
-module.exports = {
+export {
     DefaultModuleLoader
 }

@@ -1,8 +1,8 @@
 // MOST Web Framework 2.0 Codename Blueshift Copyright (c) 2017-2020, THEMOST LP All rights reserved
-const Q = require('q');
-const _ = require('lodash');
-const {DataError} = require('@themost/common');
-const {DataObjectJunction} = require('./data-object-junction');
+import { Promise, all } from 'q';
+import { filter, map } from 'lodash';
+import { DataError } from '@themost/common';
+import { DataObjectJunction } from './data-object-junction';
 class ZeroOrOneMultiplicityListener {
     constructor() {
         //
@@ -24,10 +24,10 @@ class ZeroOrOneMultiplicityListener {
      * @return {Promise<void>}
      */
     afterSaveAsync(event) {
-        return Q.Promise(function (resolve, reject) {
+        return Promise(function (resolve, reject) {
             // get attributes that defines an zero or one multiplicity association
             // with this context model
-            let attributes = _.filter(event.model.attributes, function (attribute) {
+            let attributes = filter(event.model.attributes, function (attribute) {
                 if (Object.prototype.hasOwnProperty.call(event.target, attribute.name) === false) {
                     return false;
                 }
@@ -45,8 +45,8 @@ class ZeroOrOneMultiplicityListener {
                 // do nothing
                 return resolve();
             }
-            let sources = _.map(attributes, function (attribute) {
-                return Q.Promise(function (_resolve, _reject) {
+            let sources = map(attributes, function (attribute) {
+                return Promise(function (_resolve, _reject) {
                     // exclude readonly attributes
                     if (Object.prototype.hasOwnProperty.call(attribute, 'readonly')) {
                         if (attribute.readonly) {
@@ -103,7 +103,7 @@ class ZeroOrOneMultiplicityListener {
                 });
             });
             // execute all promises
-            Q.all(sources).then(function () {
+            all(sources).then(function () {
                 return resolve();
             }).catch(function (err) {
                 return reject(err);
@@ -112,6 +112,6 @@ class ZeroOrOneMultiplicityListener {
     }
 }
 
-module.exports = {
+export {
     ZeroOrOneMultiplicityListener
 };

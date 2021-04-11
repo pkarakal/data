@@ -1,10 +1,10 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 
-const _ = require('lodash');
-const {QueryExpression, QueryField} = require('@themost/query');
-const {DataAssociationMapping} = require('./types');
-const {DataQueryable} = require('./data-queryable');
-const {hasOwnProperty} = require('./has-own-property');
+import { assign } from 'lodash';
+import { QueryExpression, QueryField } from '@themost/query';
+import { DataAssociationMapping } from './types';
+import { DataQueryable } from './data-queryable';
+import { hasOwnProperty } from './has-own-property';
 /**
  * @classdesc Represents a foreign key association between two models.
  * @class
@@ -52,7 +52,7 @@ class HasOneAssociation extends DataQueryable {
             if (association instanceof DataAssociationMapping) {
                 self.mapping = association;
             } else {
-                self.mapping = _.assign(new DataAssociationMapping(), association);
+                self.mapping = assign(new DataAssociationMapping(), association);
             }
         }
 
@@ -146,4 +146,4 @@ class HasOneAssociation extends DataQueryable {
     }
 }
 
-module.exports = {HasOneAssociation};
+export {HasOneAssociation};

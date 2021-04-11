@@ -1,7 +1,7 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 
 // eslint-disable-next-line no-unused-vars
-const { DataEventArgs } = require('./types');
+import { DataEventArgs } from './types';
 
 class DataNestedQueryableListener {
     beforeExecute(event, callback) {
@@ -50,6 +50,6 @@ class DataNestedQueryableListener {
     }
 }
 
-module.exports = {
+export {
     DataNestedQueryableListener
 }

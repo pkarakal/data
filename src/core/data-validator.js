@@ -1,9 +1,9 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 
-const _ = require('lodash');
-const { LangUtils } = require('@themost/common');
-const { DataConfigurationStrategy } = require('./data-configuration');
-const { hasOwnProperty } = require('./has-own-property');
+import { isNil } from 'lodash';
+import { LangUtils } from '@themost/common';
+import { DataConfigurationStrategy } from './data-configuration';
+import { hasOwnProperty } from './has-own-property';
 
 /**
  * @class
@@ -58,7 +58,7 @@ class PatternValidator extends DataValidator {
          * @returns {{code: string, message: string, innerMessage: *}|undefined}
          */
     validateSync(val) {
-        if (_.isNil(val)) {
+        if (isNil(val)) {
             return;
         }
         let valueTo = val;
@@ -116,7 +116,7 @@ class MinLengthValidator extends DataValidator {
          * @returns {{code: string, minLength: any, message:string, innerMessage: string | *} | *}
          */
     validateSync(val) {
-        if (_.isNil(val)) {
+        if (isNil(val)) {
             return;
         }
         if (hasOwnProperty(val, 'length')) {
@@ -164,7 +164,7 @@ class MaxLengthValidator extends DataValidator {
          * @returns {{code: string, maxLength: number, message:string, innerMessage: string}|undefined|*}
          */
     validateSync(val) {
-        if (_.isNil(val)) {
+        if (isNil(val)) {
             return;
         }
 
@@ -209,7 +209,7 @@ class MinValueValidator extends DataValidator {
          * @returns {{code: string, maxLength: number, message:string, innerMessage: string}|undefined|*}
          */
     validateSync(val) {
-        if (_.isNil(val)) {
+        if (isNil(val)) {
             return;
         }
         if (val < this.minValue) {
@@ -251,7 +251,7 @@ class MaxValueValidator extends DataValidator {
          * @returns {{code: string, maxLength: number, message:string, innerMessage: string}|undefined|*}
          */
     validateSync(val) {
-        if (_.isNil(val)) {
+        if (isNil(val)) {
             return;
         }
         if (val > this.maxValue) {
@@ -302,15 +302,15 @@ class RangeValidator extends DataValidator {
          * @returns {{code: string, maxLength: number, message:string, innerMessage: string}|undefined|*}
          */
     validateSync(val) {
-        if (_.isNil(val)) {
+        if (isNil(val)) {
             return;
         }
         let minValidator, maxValidator, minValidation, maxValidation;
-        if (!_.isNil(this.minValue)) {
+        if (!isNil(this.minValue)) {
             minValidator = new MinValueValidator(this.minValue);
             minValidation = minValidator.validateSync(val);
         }
-        if (!_.isNil(this.maxValue)) {
+        if (!isNil(this.maxValue)) {
             maxValidator = new MaxValueValidator(this.maxValue);
             maxValidation = maxValidator.validateSync(val);
         }
@@ -488,7 +488,7 @@ class RequiredValidator extends DataValidator {
          */
     validateSync(val) {
         let invalid = false;
-        if (_.isNil(val)) {
+        if (isNil(val)) {
             invalid = true;
         } else if ((typeof val === 'number') && isNaN(val)) {
             invalid = true;
@@ -511,7 +511,7 @@ class RequiredValidator extends DataValidator {
     }
 }
 
-module.exports = {
+export {
     DataValidator,
     PatternValidator,
     MaxValueValidator,

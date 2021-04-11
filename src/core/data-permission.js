@@ -1,13 +1,13 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 
-const {QueryEntity, QueryUtils, QueryExpression} = require('@themost/query');
-const async = require('async');
-const {AccessDeniedError} = require('@themost/common');
-const {DataConfigurationStrategy} = require('./data-configuration');
-const _ = require('lodash');
-const {DataCacheStrategy} = require('./data-cache');
-const Q = require('q');
-const {hasOwnProperty} = require('./has-own-property');
+import { QueryEntity, QueryUtils } from '@themost/query';
+import { eachSeries } from 'async';
+import { AccessDeniedError } from '@themost/common';
+import { DataConfigurationStrategy } from './data-configuration';
+import { isNil, forEach, isArray } from 'lodash';
+import { DataCacheStrategy } from './data-cache';
+import { nfbind } from 'q';
+import { hasOwnProperty } from './has-own-property';
 
 /**
  * @private
@@ -179,11 +179,11 @@ class DataPermissionEventListener {
         }
         //get user key
         let users = context.model('User'), permissions = context.model('Permission');
-        if (_.isNil(users)) {
+        if (isNil(users)) {
             //do nothing
             return callback();
         }
-        if (_.isNil(permissions)) {
+        if (isNil(permissions)) {
             //do nothing
             return callback();
         }
@@ -222,7 +222,7 @@ class DataPermissionEventListener {
                 let cancel = false;
                 event.result = false;
                 //enumerate privileges
-                async.eachSeries(privileges, function (item, cb) {
+                eachSeries(privileges, function (item, cb) {
                     if (cancel) {
                         return cb();
                     }
@@ -369,7 +369,7 @@ class DataPermissionEventListener {
                                 name = hasOwnProperty(obj, x.property) ? x.property : x.name;
                                 if (hasOwnProperty(obj, name)) {
                                     let mapping = model.inferMapping(name);
-                                    if (_.isNil(mapping)) {
+                                    if (isNil(mapping)) {
                                         field = {};
                                         field[x.name] = { $value: obj[name] };
                                         fields.push(field);
@@ -460,7 +460,7 @@ class DataPermissionEventListener {
      * @param {Function} callback - A callback function that should be called at the end of this operation. The first argument may be an error if any occurred.
      */
     beforeExecute(event, callback) {
-        if (_.isNil(event.model)) {
+        if (isNil(event.model)) {
             return callback();
         }
         //ensure silent query operation
@@ -535,12 +535,12 @@ class DataPermissionEventListener {
 
             //get user key
             let users = context.model('User'), permissions = context.model('Permission');
-            if (_.isNil(users)) {
+            if (isNil(users)) {
                 //do nothing
                 callback(null);
                 return;
             }
-            if (_.isNil(permissions)) {
+            if (isNil(permissions)) {
                 //do nothing
                 callback(null);
                 return;
@@ -579,7 +579,7 @@ class DataPermissionEventListener {
                 event.query.$lastIndex = parseInt(event.query.$lastIndex) || 0;
                 let cancel = false, assigned = false, entity = new QueryEntity(model.viewAdapter), expand = null,
                     perms1 = new QueryEntity(permissions.viewAdapter).as(permissions.viewAdapter + event.query.$lastIndex.toString()), expr = null;
-                async.eachSeries(privileges, function (item, cb) {
+                eachSeries(privileges, function (item, cb) {
                     if (cancel) {
                         return cb();
                     }
@@ -623,7 +623,7 @@ class DataPermissionEventListener {
                             if (!mapping) {
                                 return cb();
                             }
-                            if (_.isNil(expr)) {
+                            if (isNil(expr)) {
                                 expr = QueryUtils.query();
                             }
                             expr.where(entity.select(mapping.childField)).equal(perms1.select('target')).
@@ -637,7 +637,7 @@ class DataPermissionEventListener {
                             assigned = true;
                             cb();
                         } else if (item.type === 'item') {
-                            if (_.isNil(expr)) {
+                            if (isNil(expr)) {
                                 expr = QueryUtils.query();
                             }
                             expr.where(entity.select(model.primaryKey)).equal(perms1.select('target')).
@@ -666,7 +666,7 @@ class DataPermissionEventListener {
                                         cb(err);
                                     } else {
                                         if (q.query.$prepared) {
-                                            if (_.isNil(expr)) {
+                                            if (isNil(expr)) {
                                                 expr = QueryUtils.query();
                                             }
                                             expr.$where = q.query.$prepared;
@@ -713,7 +713,7 @@ class DataPermissionEventListener {
                             let q = QueryUtils.query(model.viewAdapter).select([model.primaryKey]).distinct();
                             if (expand) {
                                 let arrExpand = [].concat(expand);
-                                _.forEach(arrExpand, function (x) {
+                                forEach(arrExpand, function (x) {
                                     q.join(x.$entity).with(x.$with);
                                 });
                             }
@@ -763,11 +763,11 @@ function anonymousUser(context, callback) {
  */
 function queryUser(context, username, callback) {
     try {
-        if (_.isNil(context)) {
+        if (isNil(context)) {
             return callback();
         }
         let users = context.model('User');
-        if (_.isNil(users)) {
+        if (isNil(users)) {
             return callback();
         }
         users.where('name').equal(username).silent().select('id','name').expand('groups').getTypedItem().then(function(result) {
@@ -785,7 +785,7 @@ function queryUser(context, username, callback) {
  * @private
  */
 function effectiveAccounts(context, callback) {
-    if (_.isNil(context)) {
+    if (isNil(context)) {
         //push no account
         return callback(null, [ { id: null } ]);
     }
@@ -806,7 +806,7 @@ function effectiveAccounts(context, callback) {
     if (context.user.name === 'anonymous') {
         //get anonymous user data
         cache.getOrDefault(ANONYMOUS_USER_CACHE_PATH, function() {
-            return Q.nfbind(anonymousUser)(context);
+            return nfbind(anonymousUser)(context);
         }).then(function(result) {
             let arr = [];
             if (result) {
@@ -828,15 +828,15 @@ function effectiveAccounts(context, callback) {
         let USER_CACHE_PATH = '/User/' + context.user.name;
 
         cache.getOrDefault(USER_CACHE_PATH, function() {
-            return Q.nfbind(queryUser)(context, context.user.name);
+            return nfbind(queryUser)(context, context.user.name);
         }).then(function(user) {
             return cache.getOrDefault(ANONYMOUS_USER_CACHE_PATH, function() {
-                return Q.nfbind(anonymousUser)(context);
+                return nfbind(anonymousUser)(context);
             }).then(function(anonymous) {
                 let arr = [ ];
                 if (user) {
                     arr.push({ 'id': user.id, 'name': user.name });
-                    if (_.isArray(user.groups)) {
+                    if (isArray(user.groups)) {
                         user.groups.forEach(function(x) {
                             arr.push({ 'id': x.id, 'name': x.name }); 
                         });
@@ -844,7 +844,7 @@ function effectiveAccounts(context, callback) {
                 }
                 if (anonymous) {
                     arr.push({ 'id': anonymous.id, 'name': 'anonymous' });
-                    if (_.isArray(anonymous.groups)) {
+                    if (isArray(anonymous.groups)) {
                         anonymous.groups.forEach(function(x) {
                             arr.push({ 'id': x.id, 'name': x.name }); 
                         });
@@ -862,7 +862,7 @@ function effectiveAccounts(context, callback) {
 }
 
 
-module.exports = {
+export {
     DataPermissionEventArgs,
     DataPermissionEventListener,
     PermissionMask

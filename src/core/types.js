@@ -597,7 +597,7 @@ const parsers = {
     }
 };
 
-module.exports = {
+export {
     parsers,
     PrivilegeType,
     DataObjectState,

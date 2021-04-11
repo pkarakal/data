@@ -22,6 +22,6 @@ class ModuleLoader {
 }
 
 
-module.exports = {
+export {
     ModuleLoader
 }

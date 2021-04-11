@@ -1,10 +1,10 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 
-const {remove} = require('lodash');
-const {QueryUtils} = require('@themost/query');
-const {eachSeries} = require('async');
-const {DataError} = require('@themost/common');
-const {hasOwnProperty} = require('./has-own-property');
+import { remove } from 'lodash';
+import { QueryUtils } from '@themost/query';
+import { eachSeries } from 'async';
+import { DataError } from '@themost/common';
+import { hasOwnProperty } from './has-own-property';
 /**
  * 
  * @param attr
@@ -615,4 +615,4 @@ function afterSaveMany_(attr, event, callback) {
     }
 }
 
-module.exports = {DataNestedObjectListener};
+export {DataNestedObjectListener};

@@ -1,13 +1,13 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 
-const _ = require('lodash');
-const {DataObjectJunction} = require('./data-object-junction');
-const {DataObjectTag} = require('./data-object-tag');
-const {HasManyAssociation} = require('./has-many-association');
-const {HasOneAssociation} = require('./has-one-association');
-const {HasParentJunction} = require('./has-parent-junction');
-const {SequentialEventEmitter, DataError} = require('@themost/common');
-const { hasOwnProperty } = require('./has-own-property');
+import { isNil, assign } from 'lodash';
+import { DataObjectJunction } from './data-object-junction';
+import { DataObjectTag } from './data-object-tag';
+import { HasManyAssociation } from './has-many-association';
+import { HasOneAssociation } from './has-one-association';
+import { HasParentJunction } from './has-parent-junction';
+import { SequentialEventEmitter, DataError } from '@themost/common';
+import { hasOwnProperty } from './has-own-property';
 
 const selectorsProperty = Symbol('selectors');
 const typeProperty = Symbol('type');
@@ -27,7 +27,7 @@ function save_(context, callback) {
     let self = this;
     //get current application
     let model = self.getModel();
-    if (_.isNil(model)) {
+    if (isNil(model)) {
         return callback.call(self, new DataError('E_MODEL', 'Data model cannot be found.'));
     }
     let i;
@@ -57,7 +57,7 @@ function remove_(context, callback) {
     let self = this;
     //get current application
     let model = self.getModel();
-    if (_.isNil(model)) {
+    if (isNil(model)) {
         return callback.call(self, new DataError('E_MODEL', 'Data model cannot be found.'));
     }
     //register before listeners
@@ -85,7 +85,7 @@ function remove_(context, callback) {
 function attrOf_(name, callback) {
     let self = this, model = this.$$model,
         mapping = model.inferMapping(name);
-    if (_.isNil(mapping)) {
+    if (isNil(mapping)) {
         if (hasOwnProperty(self, name)) {
             return callback(null, self[name]);
         } else {
@@ -203,7 +203,7 @@ class DataObject extends SequentialEventEmitter {
 
         Object.defineProperty(this, '$$model', {
             get: function () {
-                if (_.isNil(this[typeProperty])) {
+                if (isNil(this[typeProperty])) {
                     return null;
                 }
                 if (this[modelProperty]) {
@@ -269,7 +269,7 @@ class DataObject extends SequentialEventEmitter {
             });
 
         if (typeof obj !== 'undefined' && obj !== null) {
-            _.assign(this, obj);
+            assign(this, obj);
         }
 
     }
@@ -358,12 +358,12 @@ class DataObject extends SequentialEventEmitter {
         let self = this, er;
         //validate relation based on the given name
         let model = self.$$model, field = model.field(name);
-        if (_.isNil(field)) {
+        if (isNil(field)) {
             er = new Error('The specified field cannot be found.'); er.code = 'E_DATA';
             throw er;
         }
         let mapping = model.inferMapping(field.name);
-        if (_.isNil(mapping)) {
+        if (isNil(mapping)) {
             //return queryable field value
             return {
                 value: function (callback) {
@@ -480,7 +480,7 @@ class DataObject extends SequentialEventEmitter {
             let self = this, model = self.$$model, field = model.field(name);
             if (field) {
                 let mapping = model.inferMapping(field.name);
-                if (_.isNil(mapping)) {
+                if (isNil(mapping)) {
                     if (self[model.primaryKey]) {
                         model.where(model.primaryKey).equal(self[model.primaryKey]).select(name).first(function (err, result) {
                             if (err) {
@@ -639,7 +639,7 @@ class DataObject extends SequentialEventEmitter {
                             return reject(err);
                         }
                         //if additional type is undefined
-                        if (_.isNil(additionalType)) {
+                        if (isNil(additionalType)) {
                             //return nothing
                             return resolve();
                         }
@@ -669,7 +669,7 @@ class DataObject extends SequentialEventEmitter {
             try {
                 self.getAdditionalModel().then(function (additionalModel) {
                     try {
-                        if (_.isNil(additionalModel)) {
+                        if (isNil(additionalModel)) {
                             return resolve();
                         }
                         //if additional type is equal to current model
@@ -701,6 +701,6 @@ class DataObject extends SequentialEventEmitter {
     }
 }
 
-module.exports = {
+export {
     DataObject
 };

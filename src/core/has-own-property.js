@@ -3,6 +3,6 @@ function hasOwnProperty(any, name) {
     return Object.prototype.hasOwnProperty.call(any, name);
 }
 
-module.exports = {
+export {
     hasOwnProperty
 };

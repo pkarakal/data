@@ -1,12 +1,12 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 
-const {DataConfigurationStrategy} = require('./data-configuration');
-const {QueryField, QueryUtils} = require('@themost/query');
-const _ = require('lodash');
-const Q = require('q');
-const {DataAssociationMapping} = require('./types');
-const {DataObjectJunction} = require('./data-object-junction');
-const {DataQueryable} = require('./data-queryable');
+import { DataConfigurationStrategy } from './data-configuration';
+import { QueryField, QueryUtils } from '@themost/query';
+import { assign, isNil, isArray, map, filter } from 'lodash';
+import { Promise } from 'q';
+import { DataAssociationMapping } from './types';
+import { DataObjectJunction } from './data-object-junction';
+import { DataQueryable } from './data-queryable';
 
 /**
  * @classdesc Represents a collection of values associated with a data object e.g. a collection of tags of an article, a set of skills of a person etc.
@@ -56,7 +56,7 @@ class DataObjectTag extends DataQueryable {
             if (association instanceof DataAssociationMapping) {
                 self.mapping = association;
             } else {
-                self.mapping = _.assign(new DataAssociationMapping(), association);
+                self.mapping = assign(new DataAssociationMapping(), association);
             }
         }
         //validate mapping
@@ -73,7 +73,7 @@ class DataObjectTag extends DataQueryable {
                  */
                 let strategy = context.getConfiguration().getStrategy(DataConfigurationStrategy);
                 let definition = strategy.getModelDefinition(self.mapping.associationAdapter);
-                if (_.isNil(definition)) {
+                if (isNil(definition)) {
                     let associationObjectField = self.mapping.associationObjectField || DataObjectTag.DEFAULT_OBJECT_FIELD;
                     let associationValueField = self.mapping.associationValueField || DataObjectTag.DEFAULT_VALUE_FIELD;
                     let parentModel = self.parent.getModel();
@@ -200,7 +200,7 @@ class DataObjectTag extends DataQueryable {
         let self = this;
         let superCount = super.count.bind(this);
         if (typeof callback === 'undefined') {
-            return Q.Promise(function (resolve, reject) {
+            return Promise(function (resolve, reject) {
                 return self.migrate(function (err) {
                     if (err) {
                         return reject(err);
@@ -245,7 +245,7 @@ class DataObjectTag extends DataQueryable {
     insert(item, callback) {
         let self = this;
         if (typeof callback === 'undefined') {
-            return Q.Promise(function (resolve, reject) {
+            return Promise(function (resolve, reject) {
                 return insert_.bind(self)(item, function (err) {
                     if (err) {
                         return reject(err);
@@ -274,7 +274,7 @@ class DataObjectTag extends DataQueryable {
     removeAll(callback) {
         let self = this;
         if (typeof callback !== 'function') {
-            return Q.Promise(function (resolve, reject) {
+            return Promise(function (resolve, reject) {
                 return clear_.bind(self)(function (err) {
                     if (err) {
                         return reject(err); 
@@ -295,7 +295,7 @@ class DataObjectTag extends DataQueryable {
     remove(item, callback) {
         let self = this;
         if (typeof callback !== 'function') {
-            return Q.Promise(function (resolve, reject) {
+            return Promise(function (resolve, reject) {
                 return remove_.bind(self)(item, function (err) {
                     if (err) {
                         return reject(err); 
@@ -320,7 +320,7 @@ DataObjectTag.DEFAULT_VALUE_FIELD = 'value';
 function insert_(obj, callback) {
     let self = this;
     let values = [];
-    if (_.isArray(obj)) {
+    if (isArray(obj)) {
         values = obj;
     } else {
         values.push(obj);
@@ -334,8 +334,8 @@ function insert_(obj, callback) {
         // get value field name
         let valueField = self.getValueField();
         // map the given items
-        let items = _.map(_.filter(values, function(x) {
-            return !_.isNil(x);
+        let items = map(filter(values, function(x) {
+            return !isNil(x);
         }), function (x) {
             let res = {};
             res[objectField] = self.parent[self.mapping.parentField];
@@ -386,7 +386,7 @@ function clear_(callback) {
 function remove_(obj, callback) {
     let self = this;
     let values = [];
-    if (_.isArray(obj)) {
+    if (isArray(obj)) {
         values = obj;
     } else {
         values.push(obj);
@@ -399,8 +399,8 @@ function remove_(obj, callback) {
         let objectField = self.getObjectField();
         // get value field name
         let valueField = self.getValueField();
-        let items = _.map(_.filter(values, function(x) {
-            return !_.isNil(x);
+        let items = map(filter(values, function(x) {
+            return !isNil(x);
         }), function (x) {
             let res = {};
             res[objectField] = self.parent[self.mapping.parentField];
@@ -411,6 +411,6 @@ function remove_(obj, callback) {
     });
 }
 
-module.exports = {
+export {
     DataObjectTag
 };

@@ -1,15 +1,15 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 // eslint-disable-next-line no-unused-vars
-const {Args, ConfigurationBase} = require('@themost/common');
-const Q = require('q');
-const pluralize = require('pluralize');
-const _ = require('lodash');
-const moment = require('moment');
-const {parsers} = require('./types');
+import { Args, ConfigurationBase } from '@themost/common';
+import { promise, resolve as _resolve, reject as _reject } from 'q';
+import pluralize from 'pluralize';
+import { find, keys as _keys, isBoolean, isEmpty, findIndex, assign, isNil, forEach, filter, isObject, map, flatMap } from 'lodash';
+import moment from 'moment';
+import { parsers } from './types';
 const parseBoolean = parsers.parseBoolean;
-const {DataModel} = require('./data-model');
-const {DataContext} = require('./types');
-const {XDocument} = require('@themost/xml');
+import { DataModel } from './data-model';
+import { DataContext } from './types';
+import { XDocument } from '@themost/xml';
 // noinspection JSUnusedLocalSymbols
 const entityTypesProperty = Symbol('entityTypes');
 // noinspection JSUnusedLocalSymbols
@@ -20,9 +20,9 @@ const entityTypeProperty = Symbol('entityType');
 // noinspection JSUnusedLocalSymbols
 const edmProperty = Symbol('edm');
 const initializeProperty = Symbol('initialize');
-const {DataConfigurationStrategy, SchemaLoaderStrategy, DefaultSchemaLoaderStrategy} = require('./data-configuration');
-const {instanceOf} = require('./instance-of');
-const {hasOwnProperty} = require('./has-own-property');
+import { DataConfigurationStrategy, SchemaLoaderStrategy, DefaultSchemaLoaderStrategy } from './data-configuration';
+import { instanceOf } from './instance-of';
+import { hasOwnProperty } from './has-own-property';
 
 
 class EdmType {
@@ -80,7 +80,7 @@ EdmMultiplicity.ZeroOrOne = 'ZeroOrOne';
 EdmMultiplicity.parse = function(value) {
     if (typeof value === 'string') {
         let re = new RegExp('^'+value+'$','ig');
-        return _.find(_.keys(EdmMultiplicity), function(x) {
+        return find(_keys(EdmMultiplicity), function(x) {
             if (typeof EdmMultiplicity[x] === 'string') {
                 return re.test(EdmMultiplicity[x]);
             }
@@ -146,7 +146,7 @@ class ProcedureConfiguration {
         Args.notString(name, 'Action parameter name');
         Args.notString(type, 'Action parameter type');
         let findRe = new RegExp('^' + name + '$', 'ig');
-        let p = _.find(this.parameters, function (x) {
+        let p = find(this.parameters, function (x) {
             return findRe.test(x.name);
         });
         if (p) {
@@ -155,7 +155,7 @@ class ProcedureConfiguration {
             this.parameters.push({
                 'name': name,
                 'type': type,
-                'nullable': _.isBoolean(nullable) ? nullable : false,
+                'nullable': isBoolean(nullable) ? nullable : false,
                 'fromBody': fromBody
             });
         }
@@ -230,11 +230,11 @@ class EntityCollectionConfiguration {
      * @returns {ActionConfiguration|*}
      */
     hasAction(name) {
-        if (_.isEmpty(name)) {
+        if (isEmpty(name)) {
             return;
         }
         let findRe = new RegExp('^' + name + '$', 'ig');
-        return _.find(this.actions, function (x) {
+        return find(this.actions, function (x) {
             return findRe.test(x.name);
         });
     }
@@ -262,11 +262,11 @@ class EntityCollectionConfiguration {
      * @returns {ActionConfiguration|*}
      */
     hasFunction(name) {
-        if (_.isEmpty(name)) {
+        if (isEmpty(name)) {
             return;
         }
         let findRe = new RegExp('^' + name + '$', 'ig');
-        return _.find(this.functions, function (x) {
+        return find(this.functions, function (x) {
             return findRe.test(x.name);
         });
     }
@@ -368,11 +368,11 @@ class EntityTypeConfiguration {
          * @returns {ActionConfiguration|*}
          */
     hasAction(name) {
-        if (_.isEmpty(name)) {
+        if (isEmpty(name)) {
             return;
         }
         let findRe = new RegExp('^' + name + '$', 'ig');
-        return _.find(this.actions, function (x) {
+        return find(this.actions, function (x) {
             return findRe.test(x.name);
         });
     }
@@ -400,11 +400,11 @@ class EntityTypeConfiguration {
          * @returns {ActionConfiguration|*}
          */
     hasFunction(name) {
-        if (_.isEmpty(name)) {
+        if (isEmpty(name)) {
             return;
         }
         let findRe = new RegExp('^' + name + '$', 'ig');
-        return _.find(this.functions, function (x) {
+        return find(this.functions, function (x) {
             return findRe.test(x.name);
         });
     }
@@ -417,20 +417,20 @@ class EntityTypeConfiguration {
          */
     addProperty(name, type, nullable) {
         Args.notString(name, 'Property name');
-        let exists = _.findIndex(this.property, function (x) {
+        let exists = findIndex(this.property, function (x) {
             return x.name === name;
         });
         if (exists < 0) {
             let p = {
                 'name': name,
                 'type': type,
-                'nullable': _.isBoolean(nullable) ? nullable : true
+                'nullable': isBoolean(nullable) ? nullable : true
             };
             this.property.push(p);
         } else {
-            _.assign(this.property[exists], {
+            assign(this.property[exists], {
                 'type': type,
-                'nullable': _.isBoolean(nullable) ? nullable : true
+                'nullable': isBoolean(nullable) ? nullable : true
             });
         }
         return this;
@@ -445,7 +445,7 @@ class EntityTypeConfiguration {
          */
     addNavigationProperty(name, type, multiplicity) {
         Args.notString(name, 'Property name');
-        let exists = _.findIndex(this.navigationProperty, function (x) {
+        let exists = findIndex(this.navigationProperty, function (x) {
             return x.name === name;
         });
 
@@ -460,7 +460,7 @@ class EntityTypeConfiguration {
         if (exists < 0) {
             this.navigationProperty.push(p);
         } else {
-            _.assign(this.navigationProperty[exists], p);
+            assign(this.navigationProperty[exists], p);
         }
         return this;
     }
@@ -472,7 +472,7 @@ class EntityTypeConfiguration {
          */
     removeNavigationProperty(name) {
         Args.notString(name, 'Property name');
-        let hasProperty = _.findIndex(this.property, function (x) {
+        let hasProperty = findIndex(this.property, function (x) {
             return x.name === name;
         });
         if (hasProperty >= 0) {
@@ -487,7 +487,7 @@ class EntityTypeConfiguration {
          */
     ignore(name) {
         Args.notString(name, 'Property name');
-        let hasProperty = _.findIndex(this.ignoredProperty, function (x) {
+        let hasProperty = findIndex(this.ignoredProperty, function (x) {
             return x.name === name;
         });
         if (hasProperty >= 0) {
@@ -504,7 +504,7 @@ class EntityTypeConfiguration {
          */
     removeProperty(name) {
         Args.notString(name, 'Property name');
-        let hasProperty = _.findIndex(this.property, function (x) {
+        let hasProperty = findIndex(this.property, function (x) {
             return x.name === name;
         });
         if (hasProperty >= 0) {
@@ -521,7 +521,7 @@ class EntityTypeConfiguration {
     removeKey(name) {
         Args.notString(name, 'Key name');
         if (this.key && Array.isArray(this.key.propertyRef)) {
-            let hasKeyIndex = _.findIndex(this.key.propertyRef, function (x) {
+            let hasKeyIndex = findIndex(this.key.propertyRef, function (x) {
                 return x.name === name;
             });
             if (hasKeyIndex < 0) {
@@ -561,7 +561,7 @@ class EntityTypeConfiguration {
         if (context) {
             let contextLink = this.getBuilder().getContextLink(context);
             if (contextLink) {
-                return _.assign({
+                return assign({
                     '@odata.context': contextLink + '#' + this.name
                 }, any);
             }
@@ -667,7 +667,7 @@ class EntitySetConfiguration {
              */
             function (context) {
                 let thisBuilder = this.getBuilder();
-                if (_.isNil(thisBuilder)) {
+                if (isNil(thisBuilder)) {
                     return;
                 }
                 if (typeof thisBuilder.getContextLink !== 'function') {
@@ -703,12 +703,12 @@ class EntitySetConfiguration {
          */
     getEntityTypePropertyList() {
         let result = {};
-        _.forEach(this.entityType.property, function (x) {
+        forEach(this.entityType.property, function (x) {
             result[x.name] = x;
         });
         let baseEntityType = this.getBuilder().getEntity(this.entityType.baseType);
         while (baseEntityType) {
-            _.forEach(baseEntityType.property, function (x) {
+            forEach(baseEntityType.property, function (x) {
                 result[x.name] = x;
             });
             baseEntityType = this.getBuilder().getEntity(baseEntityType.baseType);
@@ -723,17 +723,17 @@ class EntitySetConfiguration {
          */
     getEntityTypeProperty(name, deep) {
         let re = new RegExp('^' + name + '$', 'ig');
-        let p = _.find(this.entityType.property, function (x) {
+        let p = find(this.entityType.property, function (x) {
             return re.test(x.name);
         });
         if (p) {
             return p;
         }
-        let deep_ = _.isBoolean(deep) ? deep : true;
+        let deep_ = isBoolean(deep) ? deep : true;
         if (deep_) {
             let baseEntityType = this.getBuilder().getEntity(this.entityType.baseType);
             while (baseEntityType) {
-                p = _.find(baseEntityType.property, function (x) {
+                p = find(baseEntityType.property, function (x) {
                     return re.test(x.name);
                 });
                 if (p) {
@@ -764,17 +764,17 @@ class EntitySetConfiguration {
          */
     getEntityTypeNavigationProperty(name, deep) {
         let re = new RegExp('^' + name + '$', 'ig');
-        let p = _.find(this.entityType.navigationProperty, function (x) {
+        let p = find(this.entityType.navigationProperty, function (x) {
             return re.test(x.name);
         });
         if (p) {
             return p;
         }
-        let deep_ = _.isBoolean(deep) ? deep : true;
+        let deep_ = isBoolean(deep) ? deep : true;
         if (deep_) {
             let baseEntityType = this.getBuilder().getEntity(this.entityType.baseType);
             while (baseEntityType) {
-                p = _.find(baseEntityType.navigationProperty, function (x) {
+                p = find(baseEntityType.navigationProperty, function (x) {
                     return re.test(x.name);
                 });
                 if (p) {
@@ -790,12 +790,12 @@ class EntitySetConfiguration {
          */
     getEntityTypeNavigationPropertyList() {
         let result = [];
-        _.forEach(this.entityType.navigationProperty, function (x) {
+        forEach(this.entityType.navigationProperty, function (x) {
             result[x.name] = x;
         });
         let baseEntityType = this.getBuilder().getEntity(this.entityType.baseType);
         while (baseEntityType) {
-            _.forEach(baseEntityType.navigationProperty, function (x) {
+            forEach(baseEntityType.navigationProperty, function (x) {
                 result[x.name] = x;
             });
             baseEntityType = this.getBuilder().getEntity(baseEntityType.baseType);
@@ -849,7 +849,7 @@ class EntitySetConfiguration {
         if (context) {
             let contextLink = this.getContextLink(context);
             if (contextLink) {
-                return _.assign({
+                return assign({
                     '@odata.context': contextLink + '/$entity'
                 }, any);
             }
@@ -956,7 +956,7 @@ function schemaToEdmDocument(schema) {
     let actionElements = [], functionElements = [];
     //append edmx:DataServices > Schema
     dataServicesElement.appendChild(schemaElement);
-    _.forEach(schema.entityType,
+    forEach(schema.entityType,
         /**
          *
          * @param {EntityTypeConfiguration} entityType
@@ -964,18 +964,18 @@ function schemaToEdmDocument(schema) {
         function(entityType) {
 
             //search for bound actions
-            _.forEach(entityType.actions.concat(entityType.collection.actions), function(action) {
+            forEach(entityType.actions.concat(entityType.collection.actions), function(action) {
                 let actionElement = doc.createElement('Action');
                 actionElement.setAttribute('Name', action.name);
                 actionElement.setAttribute('IsBound', true);
                 if (action.isComposable) {
                     actionElement.setAttribute('IsComposable', action.isComposable);
                 }
-                _.forEach(action.parameters, function(parameter) {
+                forEach(action.parameters, function(parameter) {
                     let paramElement =  doc.createElement('Parameter');
                     paramElement.setAttribute('Name', parameter.name);
                     paramElement.setAttribute('Type', parameter.type);
-                    let nullable = _.isBoolean(parameter.nullable) ? parameter.nullable : false;
+                    let nullable = isBoolean(parameter.nullable) ? parameter.nullable : false;
                     if (!nullable) {
                         paramElement.setAttribute('Nullable', nullable);
                     }
@@ -998,18 +998,18 @@ function schemaToEdmDocument(schema) {
             });
 
             //search for bound functions
-            _.forEach(entityType.functions.concat(entityType.collection.functions), function(func) {
+            forEach(entityType.functions.concat(entityType.collection.functions), function(func) {
                 let functionElement = doc.createElement('Function');
                 functionElement.setAttribute('Name', func.name);
                 functionElement.setAttribute('IsBound', true);
                 if (func.isComposable) {
                     functionElement.setAttribute('IsComposable', func.isComposable);
                 }
-                _.forEach(func.parameters, function(parameter) {
+                forEach(func.parameters, function(parameter) {
                     let paramElement =  doc.createElement('Parameter');
                     paramElement.setAttribute('Name', parameter.name);
                     paramElement.setAttribute('Type', parameter.type);
-                    let nullable = _.isBoolean(parameter.nullable) ? parameter.nullable : false;
+                    let nullable = isBoolean(parameter.nullable) ? parameter.nullable : false;
                     if (!nullable) {
                         paramElement.setAttribute('Nullable', nullable);
                     }
@@ -1048,7 +1048,7 @@ function schemaToEdmDocument(schema) {
 
             if (entityType.key && entityType.key.propertyRef) {
                 let keyElement = doc.createElement('Key');
-                _.forEach(entityType.key.propertyRef, function(key) {
+                forEach(entityType.key.propertyRef, function(key) {
                     let keyRefElement = doc.createElement('PropertyRef');
                     keyRefElement.setAttribute('Name',key.name);
                     keyElement.appendChild(keyRefElement);
@@ -1056,11 +1056,11 @@ function schemaToEdmDocument(schema) {
                 entityTypeElement.appendChild(keyElement);
             }
             //enumerate properties
-            _.forEach(entityType.property, function(x) {
+            forEach(entityType.property, function(x) {
                 let propertyElement = doc.createElement('Property');
                 propertyElement.setAttribute('Name',x.name);
                 propertyElement.setAttribute('Type',x.type);
-                if (_.isBoolean(x.nullable) && (x.nullable===false)) {
+                if (isBoolean(x.nullable) && (x.nullable===false)) {
                     propertyElement.setAttribute('Nullable',false);
                 }
                 // add annotations
@@ -1079,7 +1079,7 @@ function schemaToEdmDocument(schema) {
                 entityTypeElement.appendChild(propertyElement);
             });
             //enumerate navigation properties
-            _.forEach(entityType.navigationProperty, function(x) {
+            forEach(entityType.navigationProperty, function(x) {
                 let propertyElement = doc.createElement('NavigationProperty');
                 propertyElement.setAttribute('Name',x.name);
                 propertyElement.setAttribute('Type',x.type);
@@ -1105,11 +1105,11 @@ function schemaToEdmDocument(schema) {
         });
 
     //append action elements to schema
-    _.forEach(actionElements, function(actionElement) {
+    forEach(actionElements, function(actionElement) {
         schemaElement.appendChild(actionElement);
     });
     //append function elements to schema
-    _.forEach(functionElements, function(functionElement) {
+    forEach(functionElements, function(functionElement) {
         schemaElement.appendChild(functionElement);
     });
 
@@ -1117,7 +1117,7 @@ function schemaToEdmDocument(schema) {
     let entityContainerElement = doc.createElement('EntityContainer');
     entityContainerElement.setAttribute('Name', schema.entityContainer.name || 'DefaultContainer');
 
-    _.forEach(schema.entityContainer.entitySet,
+    forEach(schema.entityContainer.entitySet,
         /**
          * @param {EntitySetConfiguration} child
          */
@@ -1191,7 +1191,7 @@ class ODataModelBuilder {
          * @returns {EntityTypeConfiguration|*}
          */
     getEntity(name) {
-        if (_.isNil(name)) {
+        if (isNil(name)) {
             return;
         }
         Args.notString(name, 'Entity type name');
@@ -1228,7 +1228,7 @@ class ODataModelBuilder {
     getSingleton(name) {
         Args.notString(name, 'Singleton Name');
         let re = new RegExp('^' + name + '$', 'ig');
-        return _.find(this[entityContainerProperty], function (x) {
+        return find(this[entityContainerProperty], function (x) {
             return re.test(x.name) && x.kind === EntitySetKind.Singleton;
         });
     }
@@ -1238,7 +1238,7 @@ class ODataModelBuilder {
          */
     hasSingleton(name) {
         let findRe = new RegExp('^' + name + '$', 'ig');
-        return _.findIndex(this[entityContainerProperty], function (x) {
+        return findIndex(this[entityContainerProperty], function (x) {
             return findRe.test(x.name) && x.kind === EntitySetKind.Singleton;
         }) >= 0;
     }
@@ -1249,7 +1249,7 @@ class ODataModelBuilder {
          */
     hasEntitySet(name) {
         let findRe = new RegExp('^' + name + '$', 'ig');
-        return _.findIndex(this[entityContainerProperty], function (x) {
+        return findIndex(this[entityContainerProperty], function (x) {
             return findRe.test(x.name) && x.kind === EntitySetKind.EntitySet;
         }) >= 0;
     }
@@ -1273,7 +1273,7 @@ class ODataModelBuilder {
      */
     removeEntitySet(name) {
         let findRe = new RegExp('^' + name + '$', 'ig');
-        let index = _.findIndex(this[entityContainerProperty], function (x) {
+        let index = findIndex(this[entityContainerProperty], function (x) {
             return findRe.test(x.name) && x.kind === EntitySetKind.EntitySet;
         });
         if (index >= 0) {
@@ -1290,7 +1290,7 @@ class ODataModelBuilder {
     getEntitySet(name) {
         Args.notString(name, 'EntitySet Name');
         let re = new RegExp('^' + name + '$', 'ig');
-        return _.find(this[entityContainerProperty], function (x) {
+        return find(this[entityContainerProperty], function (x) {
             return re.test(x.name) && x.kind === EntitySetKind.EntitySet;
         });
     }
@@ -1302,7 +1302,7 @@ class ODataModelBuilder {
     getEntityTypeEntitySet(entityName) {
         Args.notString(entityName, 'Entity Name');
         let re = new RegExp('^' + entityName + '$', 'ig');
-        return _.find(this[entityContainerProperty], function (x) {
+        return find(this[entityContainerProperty], function (x) {
             return x.entityType && re.test(x.entityType.name);
         });
     }
@@ -1333,7 +1333,7 @@ class ODataModelBuilder {
          */
     getEdm() {
         let self = this;
-        return Q.promise(function (resolve, reject) {
+        return promise(function (resolve, reject) {
             try {
                 let schema = {
                     entityType: [],
@@ -1343,11 +1343,11 @@ class ODataModelBuilder {
                     }
                 };
                 //get entity types by excluding ignored entities
-                let keys = _.filter(_.keys(self[entityTypesProperty]), function (x) {
+                let keys = filter(_keys(self[entityTypesProperty]), function (x) {
                     return self[ignoreEntityTypesProperty].indexOf(x) < 0;
                 });
                 //enumerate entity types
-                _.forEach(keys, function (key) {
+                forEach(keys, function (key) {
                     schema.entityType.push(self[entityTypesProperty][key]);
                 });
                 //apply entity sets
@@ -1376,11 +1376,11 @@ class ODataModelBuilder {
             }
         };
         //get entity types by excluding ignored entities
-        let keys = _.filter(_.keys(self[entityTypesProperty]), function (x) {
+        let keys = filter(_keys(self[entityTypesProperty]), function (x) {
             return self[ignoreEntityTypesProperty].indexOf(x) < 0;
         });
         //enumerate entity types
-        _.forEach(keys, function (key) {
+        forEach(keys, function (key) {
             schema.entityType.push(self[entityTypesProperty][key]);
         });
         //apply entity sets
@@ -1409,7 +1409,7 @@ class ODataModelBuilder {
          */
     getEdmDocument() {
         let self = this;
-        return Q.promise(function (resolve, reject) {
+        return promise(function (resolve, reject) {
             try {
                 return self.getEdm().then(function (schema) {
                     let doc = schemaToEdmDocument.bind(self)(schema);
@@ -1479,7 +1479,7 @@ class ODataModelBuilder {
      */
 ODataModelBuilder.prototype.jsonFormatter = function(context, entitySet, instance, options) {
     let self = this;
-    let defaults = _.assign({
+    let defaults = assign({
         addContextAttribute:true,
         addCountAttribute:false
     }, options);
@@ -1488,25 +1488,25 @@ ODataModelBuilder.prototype.jsonFormatter = function(context, entitySet, instanc
     let ignoredProperty = entitySet.getEntityTypeIgnoredPropertyList();
     let singleJsonFormatter = function(instance) {
         let result = {};
-        _.forEach(_.keys(instance), function(key) {
+        forEach(_keys(instance), function(key) {
             if (ignoredProperty.indexOf(key)<0) {
                 if (hasOwnProperty(entityProperty, key)) {
                     let p = entityProperty[key];
                     if (p.type === EdmType.EdmBoolean) {
                         result[key] = parseBoolean(instance[key]);
                     } else if (p.type === EdmType.EdmDate) {
-                        if (!_.isNil(instance[key])) {
+                        if (!isNil(instance[key])) {
                             result[key] = moment(instance[key]).format('YYYY-MM-DD');
                         }
                     } else if (p.type === EdmType.EdmDateTimeOffset) {
-                        if (!_.isNil(instance[key])) {
+                        if (!isNil(instance[key])) {
                             result[key] = moment(instance[key]).format('YYYY-MM-DDTHH:mm:ssZ');
                         }
                     } else {
                         result[key] = instance[key];
                     }
                 } else if (hasOwnProperty(entityNavigationProperty, key)) {
-                    if (_.isObject(instance[key])) {
+                    if (isObject(instance[key])) {
                         let match = /^Collection\((.*?)\)$/.exec(entityNavigationProperty[key].type);
                         let entityType = match ? match[1] : entityNavigationProperty[key].type;
                         let entitySet = self.getEntityTypeEntitySet(/\.?(\w+)$/.exec(entityType)[1]);
@@ -1524,25 +1524,25 @@ ODataModelBuilder.prototype.jsonFormatter = function(context, entitySet, instanc
     let value;
     let result = {};
     if (defaults.addContextAttribute) {
-        _.assign(result, {
+        assign(result, {
             '@odata.context':self.getContextLink(context).concat('$metadata#', entitySet.name)
         });
     }
     if (Array.isArray(instance)) {
-        value = _.map(instance, function(x) {
+        value = map(instance, function(x) {
             return singleJsonFormatter(x);
         });
-        _.assign(result, {
+        assign(result, {
             'value':value
         });
-    } else if (_.isObject(instance)) {
+    } else if (isObject(instance)) {
         value = singleJsonFormatter(instance);
         if (defaults.addContextAttribute) {
-            _.assign(result, {
+            assign(result, {
                 '@odata.context':self.getContextLink(context).concat('$metadata#', entitySet.name, '/$entity')
             });
         }
-        _.assign(result, value);
+        assign(result, value);
     }
     return result;
 };
@@ -1571,7 +1571,7 @@ class EntityDataContext extends DataContext {
             return;
         }
         let definition = strategy.model(name);
-        if (_.isNil(definition)) {
+        if (isNil(definition)) {
             return;
         }
         let res = new DataModel(definition);
@@ -1632,7 +1632,7 @@ class ODataConventionModelBuilder extends ODataModelBuilder {
                 let model = new DataModel(definition);
                 model.context = new EntityDataContext(self.getConfiguration());
                 let inheritedAttributes = [];
-                let primaryKey = _.find(model.attributes, function (x) {
+                let primaryKey = find(model.attributes, function (x) {
                     return x.primary;
                 });
                 if (model.inherits) {
@@ -1654,7 +1654,7 @@ class ODataConventionModelBuilder extends ODataModelBuilder {
                         value: model.implements
                     });
                 }
-                _.forEach(_.filter(model.attributes, function (x) {
+                forEach(filter(model.attributes, function (x) {
                     if (x.primary && model.inherits) {
                         return false;
                     }
@@ -1663,11 +1663,11 @@ class ODataConventionModelBuilder extends ODataModelBuilder {
                     let name = x.property || x.name;
                     let mapping = model.inferMapping(x.name);
                     let findProperty = null;
-                    if (_.isNil(mapping)) {
+                    if (isNil(mapping)) {
                         //find data type
                         let dataType = strategy.dataTypes[x.type];
                         //add property
-                        let edmType = _.isObject(dataType) ? (hasOwnProperty(dataType, 'edmtype') ? dataType['edmtype'] : 'Edm.' + x.type) : x.type;
+                        let edmType = isObject(dataType) ? (hasOwnProperty(dataType, 'edmtype') ? dataType['edmtype'] : 'Edm.' + x.type) : x.type;
                         modelEntityType.addProperty(name, edmType, hasOwnProperty(x, 'nullable') ? x.nullable : true);
                         if (x.primary) {
                             modelEntityType.hasKey(name, edmType);
@@ -1733,27 +1733,27 @@ class ODataConventionModelBuilder extends ODataModelBuilder {
                 let DataObjectClass = model.getDataObjectType();
                 //get static functions
                 let ownFunctions = EdmMapping.getOwnFunctions(DataObjectClass);
-                _.forEach(ownFunctions, function (x) {
+                forEach(ownFunctions, function (x) {
                     modelEntityType.collection.addFunction(x.name);
-                    _.assign(modelEntityType.collection.hasFunction(x.name), x);
+                    assign(modelEntityType.collection.hasFunction(x.name), x);
                 });
                 //get instance functions
                 ownFunctions = EdmMapping.getOwnFunctions(DataObjectClass.prototype);
-                _.forEach(ownFunctions, function (x) {
+                forEach(ownFunctions, function (x) {
                     modelEntityType.addFunction(x.name);
-                    _.assign(modelEntityType.hasFunction(x.name), x);
+                    assign(modelEntityType.hasFunction(x.name), x);
                 });
                 //get static actions
                 let ownActions = EdmMapping.getOwnActions(DataObjectClass);
-                _.forEach(ownActions, function (x) {
+                forEach(ownActions, function (x) {
                     modelEntityType.collection.addAction(x.name);
-                    _.assign(modelEntityType.collection.hasAction(x.name), x);
+                    assign(modelEntityType.collection.hasAction(x.name), x);
                 });
                 //get instance actions
                 ownActions = EdmMapping.getOwnActions(DataObjectClass.prototype);
-                _.forEach(ownActions, function (x) {
+                forEach(ownActions, function (x) {
                     modelEntityType.addAction(x.name);
-                    _.assign(modelEntityType.hasAction(x.name), x);
+                    assign(modelEntityType.hasAction(x.name), x);
                 });
                 //add link function
                 if (typeof self.getContextLink === 'function') {
@@ -1766,7 +1766,7 @@ class ODataConventionModelBuilder extends ODataModelBuilder {
                     if (primaryKey) {
                         modelEntitySet.hasIdLink(function (context, instance) {
                             //get parent model
-                            if (_.isNil(instance[primaryKey.name])) {
+                            if (isNil(instance[primaryKey.name])) {
                                 return;
                             }
                             return self.getContextLink(context).concat(modelEntitySet.name, '(', instance[primaryKey.name], ')');
@@ -1778,7 +1778,7 @@ class ODataConventionModelBuilder extends ODataModelBuilder {
                     if (primaryKey) {
                         modelEntitySet.hasReadLink(function (context, instance) {
                             //get parent model
-                            if (_.isNil(instance[primaryKey.name])) {
+                            if (isNil(instance[primaryKey.name])) {
                                 return;
                             }
                             return self.getContextLink(context).concat(modelEntitySet.name, '(', instance[primaryKey.name], ')');
@@ -1796,9 +1796,9 @@ class ODataConventionModelBuilder extends ODataModelBuilder {
     initialize() {
         let self = this;
         if (self[initializeProperty]) {
-            return Q.resolve();
+            return _resolve();
         }
-        return Q.promise(function (resolve, reject) {
+        return promise(function (resolve, reject) {
             try {
                 /**
                  * @type {*|DataConfigurationStrategy}
@@ -1810,7 +1810,7 @@ class ODataConventionModelBuilder extends ODataModelBuilder {
                     let models = schemaLoader.readSync();
                     // use loaders of DefaultSchemaLoaderStrategy
                     if (schemaLoader.loaders) {
-                        _.forEach(schemaLoader.loaders,
+                        forEach(schemaLoader.loaders,
                             /**
                              * @param {SchemaLoaderStrategy} loader
                              */
@@ -1819,7 +1819,7 @@ class ODataConventionModelBuilder extends ODataModelBuilder {
                                 let otherModels = loader.readSync();
                                 if (otherModels && otherModels.length) {
                                     // get new models provided by loader
-                                    let addModels = _.filter(otherModels, function (otherModel) {
+                                    let addModels = filter(otherModels, function (otherModel) {
                                         return models.indexOf(otherModel) < 0;
                                     });
                                     // add those models
@@ -1827,8 +1827,8 @@ class ODataConventionModelBuilder extends ODataModelBuilder {
                                 }
                             });
                     }
-                    _.forEach(models, function (x) {
-                        if (!_.isNil(x)) {
+                    forEach(models, function (x) {
+                        if (!isNil(x)) {
                             self.addEntitySet(x, pluralize(x));
                         }
                     });
@@ -1872,7 +1872,7 @@ class ODataConventionModelBuilder extends ODataModelBuilder {
             let models = schemaLoader.readSync();
             // use loaders of DefaultSchemaLoaderStrategy
             if (schemaLoader.loaders) {
-                _.forEach(schemaLoader.loaders,
+                forEach(schemaLoader.loaders,
                     /**
                      * @param {SchemaLoaderStrategy} loader
                      */
@@ -1881,7 +1881,7 @@ class ODataConventionModelBuilder extends ODataModelBuilder {
                         let otherModels = loader.readSync();
                         if (otherModels && otherModels.length) {
                             // get new models provided by loader
-                            let addModels = _.filter(otherModels, function (otherModel) {
+                            let addModels = filter(otherModels, function (otherModel) {
                                 return models.indexOf(otherModel) < 0;
                             });
                             // add those models
@@ -1890,8 +1890,8 @@ class ODataConventionModelBuilder extends ODataModelBuilder {
                     });
             }
             // add entity set
-            _.forEach(models, function (x) {
-                if (!_.isNil(x)) {
+            forEach(models, function (x) {
+                if (!isNil(x)) {
                     self.addEntitySet(x, pluralize(x));
                 }
             });
@@ -1920,17 +1920,17 @@ class ODataConventionModelBuilder extends ODataModelBuilder {
         // noinspection JSPotentiallyInvalidConstructorUsage
         let self = this, superGetEdm = super.getEdm;
         try {
-            if (_.isObject(self[edmProperty])) {
-                return Q.resolve(self[edmProperty]);
+            if (isObject(self[edmProperty])) {
+                return _resolve(self[edmProperty]);
             }
             return self.initialize().then(function () {
                 return superGetEdm.bind(self)().then(function (result) {
                     self[edmProperty] = result;
-                    return Q.resolve(self[edmProperty]);
+                    return _resolve(self[edmProperty]);
                 });
             });
         } catch (err) {
-            return Q.reject(err);
+            return _reject(err);
         }
     }
     /**
@@ -1940,7 +1940,7 @@ class ODataConventionModelBuilder extends ODataModelBuilder {
     getEdmSync() {
         // noinspection JSPotentiallyInvalidConstructorUsage
         let superGetEdmSync = super.getEdmSync;
-        if (_.isObject(this[edmProperty])) {
+        if (isObject(this[edmProperty])) {
             return this[edmProperty];
         }
         // use sync initialization
@@ -2185,7 +2185,7 @@ EdmMapping.property = function(name, type, nullable) {
         descriptor.value.propertyDecorator =  {
             'name': name,
             'type': type,
-            'nullable': _.isBoolean(nullable) ? nullable : false
+            'nullable': isBoolean(nullable) ? nullable : false
         };
     }
 };
@@ -2203,7 +2203,7 @@ EdmMapping.hasOwnAction = function(obj, name) {
         return;
     }
     let re = new RegExp('^' + name + '$', 'ig');
-    let functionName = _.find(getOwnPropertyNames(obj), function(x) {
+    let functionName = find(getOwnPropertyNames(obj), function(x) {
         return (typeof obj[x] === 'function') && (instanceOf(obj[x].actionDecorator, ActionConfiguration)) && re.test(obj[x].actionDecorator.name);
     });
     if (functionName) {
@@ -2223,7 +2223,7 @@ EdmMapping.hasOwnNavigationProperty = function(obj, name) {
         return;
     }
     let re = new RegExp('^' + name + '$', 'ig');
-    let functionName = _.find(getOwnPropertyNames(obj), function(x) {
+    let functionName = find(getOwnPropertyNames(obj), function(x) {
         return (typeof obj[x] === 'function') && (typeof obj[x].navigationPropertyDecorator === 'object')  && re.test(obj[x].navigationPropertyDecorator.name);
     });
     if (functionName) {
@@ -2243,7 +2243,7 @@ EdmMapping.hasOwnFunction = function(obj, name) {
         return;
     }
     let re = new RegExp('^' + name + '$', 'ig');
-    let functionName = _.find(getOwnPropertyNames(obj), function(x) {
+    let functionName = find(getOwnPropertyNames(obj), function(x) {
         return (typeof obj[x] === 'function') && (instanceOf(obj[x].functionDecorator, FunctionConfiguration)) && re.test(obj[x].functionDecorator.name);
     });
     if (functionName) {
@@ -2261,7 +2261,7 @@ EdmMapping.getOwnFunctions = function(obj) {
     if (typeof obj !== 'object' && typeof obj !== 'function') {
         return;
     }
-    return _.flatMap(_.filter(getOwnPropertyNames(obj), function(x) {
+    return flatMap(filter(getOwnPropertyNames(obj), function(x) {
         return (typeof obj[x] === 'function') && (instanceOf(obj[x].functionDecorator, FunctionConfiguration));
     }),  function(x) {
         return obj[x].functionDecorator;
@@ -2277,7 +2277,7 @@ EdmMapping.getOwnActions = function(obj) {
     if (typeof obj !== 'object' && typeof obj !== 'function') {
         return;
     }
-    return _.flatMap(_.filter(getOwnPropertyNames(obj), function(x) {
+    return flatMap(filter(getOwnPropertyNames(obj), function(x) {
         return (typeof obj[x] === 'function') && (instanceOf(obj[x].actionDecorator, ActionConfiguration));
     }),  function(x) {
         return obj[x].actionDecorator;
@@ -2286,13 +2286,15 @@ EdmMapping.getOwnActions = function(obj) {
 
 
 //exports
-module.exports = {
+export {
     EdmType,
     EdmMultiplicity,
     EntitySetKind,
     ProcedureConfiguration,
     ActionConfiguration,
     FunctionConfiguration,
+    EntityCollectionConfiguration,
+    EntityDataContext,
     EntityTypeConfiguration,
     EntitySetConfiguration,
     SingletonConfiguration,

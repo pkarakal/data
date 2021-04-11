@@ -1,7 +1,7 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
-const { Args, PathUtils } = require('@themost/common');
-const { DataConfiguration } = require('./data-configuration');
-const { DefaultDataContext } = require('./data-context');
+import { Args, PathUtils } from '@themost/common';
+import { DataConfiguration } from './data-configuration';
+import { DefaultDataContext } from './data-context';
 /**
  * @class
  */
@@ -70,7 +70,7 @@ class DataApplication {
     }
 }
 
-module.exports = {
+export {
     DataApplication
 }
 

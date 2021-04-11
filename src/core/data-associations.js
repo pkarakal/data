@@ -1,9 +1,9 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 
-const async = require('async');
-const {parsers} = require('./types');
-const {DataError} = require('@themost/common');
-const {hasOwnProperty} = require('./has-own-property');
+import { eachSeries } from 'async';
+import { parsers } from './types';
+import { DataError } from '@themost/common';
+import { hasOwnProperty } from './has-own-property';
 const parseBoolean = parsers.parseBoolean;
 
 /**
@@ -36,7 +36,7 @@ class DataObjectAssociationListener {
                         }
                     }
                 });
-                async.eachSeries(mappings,
+                eachSeries(mappings,
                     /**
                      * @param {DataAssociationMapping} mapping
                      * @param {function(Error=)} cb
@@ -126,7 +126,7 @@ class DataObjectAssociationListener {
                 if (mappings.length === 0) {
                     return callback();
                 }
-                async.eachSeries(mappings,
+                eachSeries(mappings,
                     /**
                      * @param {{name:string,mapping:DataAssociationMapping}} x
                      * @param {function(Error=)} cb
@@ -251,6 +251,6 @@ class DataObjectAssociationListener {
     }
 }
 
-module.exports = {
+export {
     DataObjectAssociationListener
 };

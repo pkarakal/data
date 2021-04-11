@@ -1,11 +1,12 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 
-const async = require('async');
-const {HasParentJunction} = require('./has-parent-junction');
-const {DataObjectJunction} = require('./data-object-junction');
-const {DataError} = require('@themost/common').DataError;
-const _ = require('lodash');
-const {hasOwnProperty} = require('./has-own-property');
+import { eachSeries } from 'async';
+import { HasParentJunction } from './has-parent-junction';
+import { DataObjectJunction } from './data-object-junction';
+import { DataError as _DataError } from '@themost/common';
+const { DataError } = _DataError;
+import { isNil, forEach } from 'lodash';
+import { hasOwnProperty } from './has-own-property';
 
 /**
  * @class
@@ -20,7 +21,7 @@ class DataReferencedObjectListener {
      */
     beforeRemove(event, callback) {
         return event.model.getReferenceMappings(false).then(function (mappings) {
-            async.eachSeries(mappings,
+            eachSeries(mappings,
                 /**
                  * @param {DataAssociationMapping} mapping
                  * @param {Function} cb
@@ -71,7 +72,7 @@ function beforeRemoveAssociatedObjects(event, mapping, callback) {
         .flatten()
         .value()
         .then(function(parentKey) {
-            if (_.isNil(parentKey)) {
+            if (isNil(parentKey)) {
                 return callback();
             }
             return childModel.where(mapping.childField).equal(parentKey)
@@ -90,7 +91,7 @@ function beforeRemoveAssociatedObjects(event, mapping, callback) {
                                 .flatten()
                                 .all().then(function(items) {
                                     let childKey = childField.property || childField.name;
-                                    _.forEach(items, function(x) {
+                                    forEach(items, function(x) {
                                         if (hasOwnProperty(x, childKey)) {
                                             x[childKey] = null;
                                         } else {
@@ -148,7 +149,7 @@ function beforeRemoveParentConnectedObjects(event, mapping, callback) {
         .flatten()
         .value()
         .then(function(childKey) {
-            if (_.isNil(childKey)) {
+            if (isNil(childKey)) {
                 return callback();
             }
             let baseModel = junction.getBaseModel();
@@ -202,7 +203,7 @@ function beforeRemoveChildConnectedObjects(event, mapping, callback) {
         .flatten()
         .value()
         .then(function(parentKey) {
-            if (_.isNil(parentKey)) {
+            if (isNil(parentKey)) {
                 return callback();
             }
             let baseModel = junction.getBaseModel();
@@ -233,4 +234,4 @@ function beforeRemoveChildConnectedObjects(event, mapping, callback) {
         });
 }
 
-module.exports = {DataReferencedObjectListener};
+export {DataReferencedObjectListener};

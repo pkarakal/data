@@ -1,14 +1,14 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 
-const _ = require('lodash');
-const Q = require('q');
-const async = require('async');
-const {QueryField, QueryUtils} = require('@themost/query');
-const {DataAssociationMapping} = require('./types');
-const {DataConfigurationStrategy} = require('./data-configuration');
-const {DataQueryable} = require('./data-queryable');
-const {DataObjectJunction} = require('./data-object-junction');
-const {hasOwnProperty} = require('./has-own-property');
+import { assign, isNil, isArray } from 'lodash';
+import { Promise } from 'q';
+import { eachSeries } from 'async';
+import { QueryField, QueryUtils } from '@themost/query';
+import { DataAssociationMapping } from './types';
+import { DataConfigurationStrategy } from './data-configuration';
+import { DataQueryable } from './data-queryable';
+import { DataObjectJunction } from './data-object-junction';
+import { hasOwnProperty } from './has-own-property';
 
 /**
  * @classdesc Represents a many-to-many association between two data models.
@@ -61,7 +61,7 @@ class HasParentJunction extends DataQueryable {
             if (association instanceof DataAssociationMapping) {
                 self.mapping = association;
             } else {
-                self.mapping = _.assign(new DataAssociationMapping(), association);
+                self.mapping = assign(new DataAssociationMapping(), association);
             }
         }
 
@@ -110,7 +110,7 @@ class HasParentJunction extends DataQueryable {
                 let childModel = self.parent.context.model(self.mapping.childModel);
                 let adapter = self.mapping.associationAdapter;
                 baseModel = self.parent.context.model(adapter);
-                if (_.isNil(baseModel)) {
+                if (isNil(baseModel)) {
                     let associationObjectField = self.mapping.associationObjectField || DataObjectJunction.DEFAULT_OBJECT_FIELD;
                     let associationValueField = self.mapping.associationValueField || DataObjectJunction.DEFAULT_VALUE_FIELD;
                     let modelDefinition = {
@@ -224,7 +224,7 @@ class HasParentJunction extends DataQueryable {
     insert(obj, callback) {
         let self = this;
         if (typeof callback === 'undefined') {
-            return Q.Promise(function (resolve, reject) {
+            return Promise(function (resolve, reject) {
                 return insert_.bind(self)(obj, function (err) {
                     if (err) {
                         return reject(err);
@@ -247,7 +247,7 @@ class HasParentJunction extends DataQueryable {
     remove(obj, callback) {
         let self = this;
         if (typeof callback === 'undefined') {
-            return Q.Promise(function (resolve, reject) {
+            return Promise(function (resolve, reject) {
                 return remove_.bind(self)(obj, function (err) {
                     if (err) {
                         return reject(err);
@@ -273,7 +273,7 @@ class HasParentJunction extends DataQueryable {
     count(callback) {
         let self = this;
         if (typeof callback === 'undefined') {
-            return Q.Promise(function (resolve, reject) {
+            return Promise(function (resolve, reject) {
                 return self.migrate(function (err) {
                     if (err) {
                         return reject(err);
@@ -347,7 +347,7 @@ function insertSingleObject_(obj, callback) {
 function insert_(obj, callback) {
     let self = this;
     let arr = [];
-    if (_.isArray(obj)) {
+    if (isArray(obj)) {
         arr = obj;
     } else {
         arr.push(obj);
@@ -356,7 +356,7 @@ function insert_(obj, callback) {
         if (err) {
             callback(err);
         } else {
-            async.eachSeries(arr, function (item, cb) {
+            eachSeries(arr, function (item, cb) {
                 let parent = item;
                 if (typeof item !== 'object') {
                     parent = {};
@@ -438,7 +438,7 @@ function removeSingleObject_(obj, callback) {
  */
 function remove_(obj, callback) {
     let self = this, arr = [];
-    if (_.isArray(obj)) {
+    if (isArray(obj)) {
         arr = obj;
     } else {
         arr.push(obj);
@@ -447,7 +447,7 @@ function remove_(obj, callback) {
         if (err) {
             callback(err);
         } else {
-            async.eachSeries(arr, function (item, cb) {
+            eachSeries(arr, function (item, cb) {
                 let parent = item;
                 if (typeof item !== 'object') {
                     parent = {};
@@ -476,6 +476,6 @@ function remove_(obj, callback) {
     });
 }
 
-module.exports = {
+export {
     HasParentJunction
 };

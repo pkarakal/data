@@ -1,12 +1,12 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 
-const {eachSeries} = require('async');
+import { eachSeries } from 'async';
 // eslint-disable-next-line no-unused-vars
-const {QueryUtils, QueryField, QueryExpression} = require('@themost/query');
-const {QueryFieldRef} = require('@themost/query/query');
-const {NotNullError, UniqueConstraintError, TraceUtils, TextUtils} = require('@themost/common');
-const { DataCacheStrategy } = require('./data-cache');
-const { FunctionContext } = require('./functions');
+import { QueryUtils, QueryField, QueryExpression } from '@themost/query';
+import { QueryFieldRef } from '@themost/query/query';
+import { NotNullError, UniqueConstraintError, TraceUtils, TextUtils } from '@themost/common';
+import { DataCacheStrategy } from './data-cache';
+import { FunctionContext } from './functions';
 /**
  * @classdesc Represents an event listener for validating not nullable fields. This listener is automatically  registered in all data models.
  */
@@ -657,7 +657,7 @@ class DataModelSubTypesListener {
     }
 }
 
-module.exports = {
+export {
     NotNullConstraintListener,
     UniqueConstraintListener,
     CalculatedValueListener,

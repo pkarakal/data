@@ -1,12 +1,12 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 
-const _ = require('lodash');
-const Q = require('q');
-const async = require('async');
-const {QueryField, QueryUtils} = require('@themost/query');
-const {DataAssociationMapping} = require('./types');
-const {DataQueryable} = require('./data-queryable');
-const {DataConfigurationStrategy} = require('./data-configuration');
+import { assign, isNil, find, isArray } from 'lodash';
+import { Promise } from 'q';
+import { eachSeries } from 'async';
+import { QueryField, QueryUtils } from '@themost/query';
+import { DataAssociationMapping } from './types';
+import { DataQueryable } from './data-queryable';
+import { DataConfigurationStrategy } from './data-configuration';
 
 /**
  * @classdesc Represents a many-to-many association between two data models.
@@ -56,7 +56,7 @@ class DataObjectJunction extends DataQueryable {
             if (association instanceof DataAssociationMapping) {
                 self.mapping = association;
             } else {
-                self.mapping = _.assign(new DataAssociationMapping(), association);
+                self.mapping = assign(new DataAssociationMapping(), association);
             }
         }
         // get related model
@@ -109,7 +109,7 @@ class DataObjectJunction extends DataQueryable {
                 let parentModel = self.parent.getModel();
                 let adapter = self.mapping.associationAdapter;
                 baseModel = self.parent.context.model(adapter);
-                if (_.isNil(baseModel)) {
+                if (isNil(baseModel)) {
                     let associationObjectField = self.mapping.associationObjectField || DataObjectJunction.DEFAULT_OBJECT_FIELD;
                     let associationValueField = self.mapping.associationValueField || DataObjectJunction.DEFAULT_VALUE_FIELD;
                     modelDefinition = {
@@ -178,14 +178,14 @@ class DataObjectJunction extends DataQueryable {
             return self.mapping.associationObjectField;
         }
         // if base model has the traditional parent attribute
-        let attr = _.find(baseModel.attributes, function (x) {
+        let attr = find(baseModel.attributes, function (x) {
             return x.name === DataObjectJunction.DEFAULT_OBJECT_FIELD;
         });
         if (attr) {
             return attr.name;
         }
         // else try to find parent model definition
-        attr = _.find(baseModel.attributes, function (x) {
+        attr = find(baseModel.attributes, function (x) {
             return self.mapping && (x.type === self.mapping.parentModel);
         });
         if (attr) {
@@ -205,14 +205,14 @@ class DataObjectJunction extends DataQueryable {
             return self.mapping.associationValueField;
         }
         // if base model has the traditional parent attribute
-        let attr = _.find(baseModel.attributes, function (x) {
+        let attr = find(baseModel.attributes, function (x) {
             return x.name === DataObjectJunction.DEFAULT_VALUE_FIELD;
         });
         if (attr) {
             return attr.name;
         }
         // else try to find parent model definition
-        attr = _.find(baseModel.attributes, function (x) {
+        attr = find(baseModel.attributes, function (x) {
             return self.mapping && (x.type === self.mapping.childModel);
         });
         if (attr) {
@@ -261,7 +261,7 @@ class DataObjectJunction extends DataQueryable {
         let self = this;
         let superCount = super.count.bind(this);
         if (typeof callback === 'undefined') {
-            return Q.Promise(function (resolve, reject) {
+            return Promise(function (resolve, reject) {
                 return self.migrate(function (err) {
                     if (err) {
                         return reject(err);
@@ -304,7 +304,7 @@ class DataObjectJunction extends DataQueryable {
     insert(obj, callback) {
         let self = this;
         if (typeof callback === 'undefined') {
-            return Q.Promise(function (resolve, reject) {
+            return Promise(function (resolve, reject) {
                 return insert_.call(self, obj, function (err) {
                     if (err) {
                         return reject(err);
@@ -327,7 +327,7 @@ class DataObjectJunction extends DataQueryable {
     removeAll(callback) {
         let self = this;
         if (typeof callback === 'undefined') {
-            return Q.Promise(function (resolve, reject) {
+            return Promise(function (resolve, reject) {
                 return clear_.call(self, function (err) {
                     if (err) {
                         return reject(err);
@@ -359,7 +359,7 @@ class DataObjectJunction extends DataQueryable {
     remove(obj, callback) {
         let self = this;
         if (typeof callback === 'undefined') {
-            return Q.Promise(function (resolve, reject) {
+            return Promise(function (resolve, reject) {
                 return remove_.call(self, obj, function (err) {
                     if (err) {
                         return reject(err);
@@ -383,7 +383,7 @@ DataObjectJunction.DEFAULT_VALUE_FIELD = 'valueId';
  */
 function insert_(obj, callback) {
     let self = this, arr = [];
-    if (_.isArray(obj)) {
+    if (isArray(obj)) {
         arr = obj;
     } else {
         arr.push(obj);
@@ -392,7 +392,7 @@ function insert_(obj, callback) {
         if (err) {
             callback(err);
         } else {
-            async.eachSeries(arr, function(item, cb) {
+            eachSeries(arr, function(item, cb) {
                 let child = item;
                 if (typeof item !== 'object') {
                     child = {};
@@ -566,7 +566,7 @@ DataObjectJunction.prototype.migrate = function(callback) {
 function remove_(obj, callback) {
     let self = this;
     let arr = [];
-    if (_.isArray(obj)) {
+    if (isArray(obj)) {
         arr = obj;
     } else {
         arr.push(obj);
@@ -575,7 +575,7 @@ function remove_(obj, callback) {
         if (err) {
             callback(err);
         } else {
-            async.eachSeries(arr, function(item, cb) {
+            eachSeries(arr, function(item, cb) {
                 let child = item;
                 if (typeof item !== 'object') {
                     child = {};
@@ -638,4 +638,4 @@ function removeSingleObject_(obj, callback) {
     });
 }
 
-module.exports = {DataObjectJunction};
+export {DataObjectJunction};

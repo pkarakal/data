@@ -373,13 +373,11 @@ class DataConfigurationStrategy extends ConfigurationStrategy {
                 try {
                     if (/^@themost\//.test(x.type)) {
                         //get require paths
-                        // eslint-disable-next-line node/no-unsupported-features/node-builtins
                         if (require.resolve && require.resolve.paths) {
                             /**
                              * get require paths collection
                              * @type string[]
                              */
-                            // eslint-disable-next-line node/no-unsupported-features/node-builtins
                             let paths = require.resolve.paths(x.type);
                             //get execution
                             let path1 = self.getConfiguration().getExecutionPath();
@@ -1023,7 +1021,7 @@ function getNamedConfiguration(name) {
     return DataConfiguration.getNamedConfiguration(name);
 }
 
-module.exports = {
+export {
     getCurrent,
     setCurrent,
     createInstance,

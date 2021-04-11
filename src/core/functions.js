@@ -1,11 +1,11 @@
 // MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 
-const {parsers} = require('./types');
-const {TraceUtils} = require('@themost/common');
+import { parsers } from './types';
+import { TraceUtils } from '@themost/common';
 // eslint-disable-next-line no-unused-vars
-const moment = require('moment');
-const _ = require('lodash');
-const Q = require('q');
+import moment from 'moment';
+import { isNil, isObject, random, times as _times } from 'lodash';
+import { defer } from 'q';
 
 /**
  * @class
@@ -25,7 +25,7 @@ class FunctionContext {
          * @type {DataModel}
          */
         this.model = model;
-        if (_.isNil(context) && _.isObject(model)) {
+        if (isNil(context) && isObject(model)) {
             //get current context from DataModel.context property
             this.context = model.context;
         }
@@ -103,7 +103,7 @@ class FunctionContext {
      * @returns {Promise|*}
      */
     newid() {
-        let deferred = Q.defer();
+        let deferred = defer();
         this.model.context.db.selectIdentity(this.model.sourceAdapter, this.model.primaryKey, function (err, result) {
             if (err) {
                 return deferred.reject(err);
@@ -116,7 +116,7 @@ class FunctionContext {
      * @returns {Promise|*}
      */
     newGuid() {
-        let deferred = Q.defer();
+        let deferred = defer();
         process.nextTick(function () {
             try {
                 deferred.resolve(newGuidInternal());
@@ -133,10 +133,10 @@ class FunctionContext {
      * @returns {Promise|*}
      */
     int(min, max) {
-        let deferred = Q.defer();
+        let deferred = defer();
         process.nextTick(function () {
             try {
-                return deferred.resolve(_.random(min, max));
+                return deferred.resolve(random(min, max));
             } catch (err) {
                 deferred.reject(err);
             }
@@ -150,7 +150,7 @@ class FunctionContext {
      * @returns {Promise|*}
      */
     numbers(length) {
-        let deferred = Q.defer();
+        let deferred = defer();
         process.nextTick(function () {
             try {
                 length = length || 8;
@@ -162,8 +162,8 @@ class FunctionContext {
                 }
                 let times = Math.ceil(length / 10);
                 let res = '';
-                _.times(times, function () {
-                    res += _.random(1000000000, 9000000000);
+                _times(times, function () {
+                    res += random(1000000000, 9000000000);
                 });
                 return deferred.resolve(res.substr(0, length));
             } catch (err) {
@@ -178,14 +178,14 @@ class FunctionContext {
      */
     chars(length) {
 
-        let deferred = Q.defer();
+        let deferred = defer();
         process.nextTick(function () {
             try {
                 length = length || 8;
                 let chars = 'abcdefghkmnopqursuvwxz2456789ABCDEFHJKLMNPQURSTUVWXYZ';
                 let str = '';
                 for (let i = 0; i < length; i++) {
-                    str += chars.substr(_.random(0, chars.length - 1), 1);
+                    str += chars.substr(random(0, chars.length - 1), 1);
                 }
                 deferred.resolve(str);
             } catch (err) {
@@ -199,14 +199,14 @@ class FunctionContext {
      * @returns {Promise|*}
      */
     password(length) {
-        let deferred = Q.defer();
+        let deferred = defer();
         process.nextTick(function () {
             try {
                 length = length || 8;
                 let chars = 'abcdefghkmnopqursuvwxz2456789ABCDEFHJKLMNPQURSTUVWXYZ',
                     str = '';
                 for (let i = 0; i < length; i++) {
-                    str += chars.substr(_.random(0, chars.length - 1), 1);
+                    str += chars.substr(random(0, chars.length - 1), 1);
                 }
                 deferred.resolve('{clear}' + str);
             } catch (err) {
@@ -219,7 +219,7 @@ class FunctionContext {
      * @returns {Promise|*}
      */
     user() {
-        let self = this, context = self.model.context, deferred = Q.defer();
+        let self = this, context = self.model.context, deferred = defer();
         let user = context.interactiveUser || context.user || {};
         process.nextTick(function () {
             if (typeof user.id !== 'undefined') {
@@ -236,11 +236,11 @@ class FunctionContext {
                     }
                     //set id for next calls
                     user.id = undefinedUser;
-                    if (_.isNil(context.user)) {
+                    if (isNil(context.user)) {
                         context.user = user;
                     }
                     return deferred.resolve(undefinedUser);
-                } else if (_.isNil(result)) {
+                } else if (isNil(result)) {
                     //try to get undefined user
                     parser = parsers['parse' + userModel.field('id').type];
                     if (typeof parser === 'function') {
@@ -248,7 +248,7 @@ class FunctionContext {
                     }
                     //set id for next calls
                     user.id = undefinedUser;
-                    if (_.isNil(context.user)) {
+                    if (isNil(context.user)) {
                         context.user = user;
                     }
                     return deferred.resolve(undefinedUser);
@@ -291,6 +291,6 @@ function newGuidInternal() {
     return uuid.join('');
 }
 
-module.exports = {
+export {
     FunctionContext
 };

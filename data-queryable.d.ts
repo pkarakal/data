@@ -1,8 +1,16 @@
 import {DataModel} from "./data-model";
 import {DataContextEmitter} from "./types";
 
+declare type DataQueryableCallback = (err?: Error, res?: any) => void;
+
+declare interface ListResult {
+    total?: number;
+    skip?: number;
+    value: Array<any>;
+}
+
 export declare class DataQueryable implements DataContextEmitter {
-    constructor(model: DataModel);
+    constructor(model?: DataModel);
     readonly model: DataModel;
     clone(): DataQueryable;
     where(attr: string): DataQueryable;
@@ -36,15 +44,15 @@ export declare class DataQueryable implements DataContextEmitter {
     getItems(): Promise<Array<any>>;
     getTypedItem(): Promise<any>;
     getTypedItems(): Promise<Array<any>>;
-    getList(): Promise<any>;
-    getTypedList(): Promise<any>;
+    getList(): Promise<ListResult>;
+    getTypedList(): Promise<ListResult>;
     getAllItems(): Promise<Array<any>>;
     count(): Promise<number>;
     value(): Promise<any>;
-    min(): Promise<any>;
-    max(): Promise<any>;
-    average(): Promise<any>;
-    migrate(callback:(err?: Error) => void);
+    min(attr: any): Promise<any>;
+    max(attr: any): Promise<any>;
+    average(attr: any): Promise<any>;
+    migrate(callback:(err?: Error) => void): void;
     silent(value?: boolean): DataQueryable;
     flatten(value?: boolean): DataQueryable;
     cache(value?: boolean): DataQueryable;
@@ -86,7 +94,7 @@ export declare class DataQueryable implements DataContextEmitter {
 
 export declare class DataAttributeResolver {
     orderByNestedAttribute(attr: string): any;
-    selecteNestedAttribute(attr: string): any;
+    selectNestedAttribute(attr: string): any;
     selectAggregatedAttribute(aggregation: string, attribute: string, alias: string): any;
     resolveNestedAttribute(attr: string): any;
     resolveNestedAttributeJoin(memberExpr: string): any;

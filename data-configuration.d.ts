@@ -1,5 +1,6 @@
 // MOST Web Framework 2.0 Codename Blueshift Copyright (c) 2017-2020, THEMOST LP All rights reserved
 import {ConfigurationBase, ConfigurationStrategy} from "@themost/common";
+import {DataModel} from "./data-model";
 
 export declare interface DataTypePropertiesConfiguration {
     pattern?: string;
@@ -49,7 +50,7 @@ export declare class DataConfiguration {
     constructor(configPath: string);
     static getCurrent(): DataConfiguration;
     static setCurrent(config: DataConfiguration): DataConfiguration;
-    static getNamedConfiguration(name: string);
+    static getNamedConfiguration(name: string): DataConfiguration;
 
 }
 export declare class DataConfigurationStrategy extends ConfigurationStrategy{
@@ -98,12 +99,12 @@ export declare class DefaultSchemaLoaderStrategy extends FileSchemaLoaderStrateg
 }
 
 export declare abstract class ModelClassLoaderStrategy extends ConfigurationStrategy {
-    abstract resolve(model: string): void;
+    abstract resolve(model: string | DataModel): void;
 
 }
 
 export declare abstract class DefaultModelClassLoaderStrategy extends ModelClassLoaderStrategy {
-    abstract resolve(model: string): void;
+    abstract resolve(model: string | DataModel): void;
 
 }
 

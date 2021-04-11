@@ -1,18 +1,10 @@
-/**
- * @license
- * MOST Web Framework 2.0 Codename Blueshift
- * Copyright (c) 2017, THEMOST LP All rights reserved
- *
- * Use of this source code is governed by an BSD-3-Clause license that can be
- * found in the LICENSE file at https://themost.io/license
- */
-///
-var _ = require("lodash");
-var QueryUtils = require('@themost/query/utils').QueryUtils;
-var async = require("async");
-var DataError = require('@themost/common/errors').DataError;
+// MOST Web Framework 2.0 Codename Blueshift BSD-3-Clause license Copyright (c) 2017-2021, THEMOST LP All rights reserved
 
-
+const {remove} = require('lodash');
+const {QueryUtils} = require('@themost/query');
+const {eachSeries} = require('async');
+const {DataError} = require('@themost/common');
+const {hasOwnProperty} = require('./has-own-property');
 /**
  * 
  * @param attr
@@ -22,17 +14,17 @@ var DataError = require('@themost/common/errors').DataError;
  * @private
  */
 function beforeSave_(attr, event, callback) {
-    var context = event.model.context,
+    let context = event.model.context,
         name = attr.property || attr.name,
         key = event.model.getPrimaryKey(),
         nestedObj = event.target[name];
     //if attribute is null or undefined do nothing
-    if (_.isNil(nestedObj)) {
+    if (nestedObj == null) {
         return callback();
     }
     //get target model
-    var nestedModel = context.model(attr.type);
-    if (_.isNil(nestedModel)) {
+    let nestedModel = context.model(attr.type);
+    if (nestedModel == null) {
         return callback();
     }
     if (event.state===1) {
@@ -40,17 +32,18 @@ function beforeSave_(attr, event, callback) {
         nestedModel.silent().save(nestedObj, function(err) {
             callback(err);
         });
-    }
-    else if (event.state === 2) {
+    } else if (event.state === 2) {
         //first of all get original address from db
         event.model.where(key)
             .equal(event.target[key])
             .select(key,name)
             .silent()
             .first().then(function( result) {
-                if (_.isNil(result)) { return callback(new Error('Invalid object state.')); }
-            var nestedKey = nestedModel.getPrimaryKey();
-                if (_.isNil(result[name])) {
+                if (result == null) { 
+                    return callback(new Error('Invalid object state.'));
+                }
+                let nestedKey = nestedModel.getPrimaryKey();
+                if (result[name] == null) {
                     //first of all delete nested object id (for insert)
                     delete nestedObj[nestedKey];
                     //save data
@@ -59,8 +52,7 @@ function beforeSave_(attr, event, callback) {
                     }).catch(function(err) {
                         return callback(err);
                     });
-                }
-                else {
+                } else {
                     //set nested object id (for update)
                     nestedObj[nestedKey] = result[name][nestedKey];
                     nestedModel.silent().save(nestedObj).then(function() {
@@ -69,11 +61,10 @@ function beforeSave_(attr, event, callback) {
                         return callback(err);
                     });
                 }
-        }).catch(function(err) {
-            return callback(err);
-        });
-    }
-    else {
+            }).catch(function(err) {
+                return callback(err);
+            });
+    } else {
         return callback();
     }
 }
@@ -86,20 +77,21 @@ function beforeSave_(attr, event, callback) {
  * @returns {*}
  * @private
  */
+// eslint-disable-next-line no-unused-vars
 function beforeSaveMany_(attr, event, callback) {
-    var context = event.model.context;
-    var name = attr.property || attr.name;
-    var key = event.model.getPrimaryKey();
-    var nestedObj = event.target[name];
+    let context = event.model.context;
+    let name = attr.property || attr.name;
+    let key = event.model.getPrimaryKey();
+    let nestedObj = event.target[name];
     //if attribute is null or undefined
-    if (_.isNil(nestedObj)) {
+    if (nestedObj == null) {
         //do nothing
         return callback();
     }
     //if nested object is not an array
-    if (!_.isArray(nestedObj)) {
+    if (!Array.isArray(nestedObj)) {
         //throw exception
-        return callback(new DataError("EJUNCT","Invalid argument type. Expected array.",null, event.model.name, name));
+        return callback(new DataError('E_JUNCTION','Invalid argument type. Expected array.',null, event.model.name, name));
     }
     //if nested array does not have any data
     if (nestedObj.length===0) {
@@ -107,17 +99,17 @@ function beforeSaveMany_(attr, event, callback) {
         return callback();
     }
     //get target model
-    var nestedModel = context.model(attr.type);
+    let nestedModel = context.model(attr.type);
     //if target model cannot be found
-    if (_.isNil(nestedModel)) {
+    if (nestedModel == null) {
         return callback();
     }
     //get nested primary key
-    var nestedKey = nestedModel.getPrimaryKey();
+    let nestedKey = nestedModel.getPrimaryKey();
     //on insert
     if (event.state===1) {
         //enumerate nested objects and set state to new
-        _.forEach(nestedObj, function(x) {
+        nestedObj.forEach(function(x) {
             //delete identifier
             delete x[nestedKey];
             //force state to new ($state=1)
@@ -126,13 +118,14 @@ function beforeSaveMany_(attr, event, callback) {
         //save nested objects
         nestedModel.silent().save(nestedObj, function(err) {
             //remove $state attribute
-            nestedObj.forEach(function(x) { delete x.$state; });
+            nestedObj.forEach(function(x) {
+                delete x.$state; 
+            });
             //and return
             callback(err);
         });
-    }
+    } else if (event.state === 2) {
         //on update
-    else if (event.state === 2) {
         //first of all get original associated object, if any
         event.model.where(key)
             .equal(event.target[key])
@@ -140,20 +133,25 @@ function beforeSaveMany_(attr, event, callback) {
             .expand(name)
             .silent()
             .first(function(err, result) {
-                if (err) { return callback(err); }
+                if (err) {
+                    return callback(err); 
+                }
                 //if original object cannot be found, throw an invalid state exception
-                if (_.isNil(result)) { return callback(new Error('Invalid object state.')); }
+                if (result == null) { 
+                    return callback(new Error('Invalid object state.'));
+                }
                 //get original nested objects
-                var originalNestedObjects = result[name] || [];
+                let originalNestedObjects = result[name] || [];
                 //enumerate nested objects
 
-                _.forEach(nestedObj, function(x) {
-                    var obj = _.find(originalNestedObjects, function(y) { return y[nestedKey] === x[nestedKey]; });
+                nestedObj.forEach(function(x) {
+                    let obj = originalNestedObjects.find(function(y) { 
+                        return y[nestedKey] === x[nestedKey];
+                    });
                     if (obj) {
                         //force state to update ($state=2)
                         x.$state = 2;
-                    }
-                    else {
+                    } else {
                         //delete identifier
                         delete x[nestedKey];
                         //force state to new ($state=1)
@@ -161,11 +159,11 @@ function beforeSaveMany_(attr, event, callback) {
                     }
                 });
 
-                _.forEach(originalNestedObjects, function(x) {
-                    var obj = _.find(nestedObj, function(y) {
+                originalNestedObjects.forEach(function(x) {
+                    let obj = nestedObj.find(function(y) {
                         return y[nestedKey] === x[nestedKey];
                     });
-                    if (_.isNil(obj)) {
+                    if (obj == null) {
                         //force state to delete ($state=4)
                         x.$state = 4;
                         nestedObj.push(x);
@@ -175,85 +173,57 @@ function beforeSaveMany_(attr, event, callback) {
                 //and finally save objects
                 nestedModel.silent().save(nestedObj, function(err) {
                     //remove $state attribute
-                    _.forEach(nestedObj, function(x) {
+                    nestedObj.forEach(function(x) {
                         delete x.$state;
                     });
-                    if (err) { return callback(err); }
+                    if (err) {
+                        return callback(err); 
+                    }
                     return callback();
                 });
             });
-    }
-    else {
+    } else {
         return callback();
     }
 }
 
 
-/**
- * @module @themost/data/data-nested-object-listener
- * @ignore
- */
-
-/**
- * @class
- * @constructor
- */
-function DataNestedObjectListener() {
-
-}
-
-/**
- * @param {DataEventArgs} event
- * @param {Function} callback
- */
-DataNestedObjectListener.prototype.beforeSave = function (event, callback) {
-    try {
-        //get attributes with nested property set to on
-        var nested = event.model.attributes.filter(function(x) {
-            //only if these attributes belong to current model
-            return x.nested && (x.model === event.model.name);
-        });
-        //if there are no attribute defined as nested do nothing
-        if (nested.length === 0) { return callback(); }
-        async.eachSeries(nested, function(attr, cb) {
-            if (attr.many===true) {
-                return cb();
-            }
-            return beforeSave_(attr, event, cb);
-        }, function(err) {
-            return callback(err);
-        });
-    }
-    catch (err) {
-        return callback(err);
-    }
-};
 
 function beforeRemove_(attr, event, callback) {
     try {
-        if (event.state !== 4) { return callback(); }
-        var context = event.model.context,
+        if (event.state !== 4) {
+            return callback(); 
+        }
+        let context = event.model.context,
             name = attr.property || attr.name,
             key = event.model.getPrimaryKey();
         /**
          * @type {DataModel}
          */
-        var nestedModel = context.model(attr.type);
-        if (_.isNil(nestedModel)) { return callback(); }
+        let nestedModel = context.model(attr.type);
+        if (nestedModel == null) { 
+            return callback();
+        }
         event.model.where(key).equal(event.target[key]).select(key,name).flatten().silent().first(function(err, result) {
-            if (err) { return callback(err); }
-            if (_.isNil(result)) { return callback(); }
-            if (_.isNil(result[name])) { return callback(); }
+            if (err) {
+                return callback(err); 
+            }
+            if (result == null) { 
+                return callback(); 
+            }
+            if (result[name] == null) { 
+                return callback(); 
+            }
             //set silent mode (if parent model is in silent mode)
             if (event.model.isSilent()) {
                 nestedModel.silent();
             }
-            var nestedKey =  result[name];
+            let nestedKey =  result[name];
             //Update target object (remove the association between target object and nested object).
             //This operation must be done before trying to remove nested object otherwise the operation will fail with foreign key reference error
-            var updated = {};
+            let updated = {};
             updated[name] = null;
-            var q = QueryUtils.update(event.model.sourceAdapter).set(updated).where(event.model.primaryKey).equal(result[event.model.primaryKey]);
+            let q = QueryUtils.update(event.model.sourceAdapter).set(updated).where(event.model.primaryKey).equal(result[event.model.primaryKey]);
             return context.db.execute(q, null, function(err) {
                 if (err) {
                     return callback(err);
@@ -266,8 +236,7 @@ function beforeRemove_(attr, event, callback) {
             });
 
         });
-    }
-    catch (err) {
+    } catch (err) {
         callback(err)
     }
 }
@@ -276,51 +245,138 @@ function beforeRemove_(attr, event, callback) {
 // eslint-disable-next-line no-unused-vars
 function beforeRemoveMany_(attr, event, callback) {
     try {
-        if (event.state !== 4) { return callback(); }
-        var context = event.model.context,
+        if (event.state !== 4) {
+            return callback(); 
+        }
+        let context = event.model.context,
             name = attr.property || attr.name;
-        var nestedModel = context.model(attr.type);
-        if (_.isNil(nestedModel)) { return callback(); }
+        let nestedModel = context.model(attr.type);
+        if (nestedModel == null) { 
+            return callback(); 
+        }
         //get junction
-        var junction = event.target.property(name);
+        let junction = event.target.property(name);
         //select object identifiers (get all objects in silent mode to avoid orphaned objects)
         junction.select(nestedModel.getPrimaryKey()).silent().all().then(function(result) {
             //first of all remove all associations
             junction.clear(function(err) {
-                if (err) { return callback(err); }
+                if (err) {
+                    return callback(err); 
+                }
                 //and afterwards remove nested objects
                 nestedModel.silent().remove(result, function(err) {
-                    if (err) { return callback(); }
+                    if (err) {
+                        return callback(); 
+                    }
                 });
             });
         }).catch(function(err) {
-           return callback(err);
+            return callback(err);
         });
-    }
-    catch (err) {
+    } catch (err) {
         callback(err)
     }
 }
 
-DataNestedObjectListener.prototype.beforeRemove = function (event, callback) {
-    try {
-        //get attributes with nested property set to on
-        var nested = event.model.attributes.filter(function(x) {
-            //only if these attributes belong to current model
-            return x.nested && (x.model === event.model.name);
-        });
-        //if there are no attribute defined as nested, do nothing and exit
-        if (nested.length === 0) { return callback(); }
-        async.eachSeries(nested, function(attr, cb) {
-            return beforeRemove_(attr, event, cb);
-        }, function(err) {
+
+class DataNestedObjectListener {
+    constructor() {
+    }
+    /**
+     * @param {DataEventArgs} event
+     * @param {Function} callback
+     */
+    beforeSave(event, callback) {
+        try {
+            //get attributes with nested property set to on
+            let nested = event.model.attributes.filter(function (x) {
+                //only if these attributes belong to current model
+                return x.nested && (x.model === event.model.name);
+            });
+            //if there are no attribute defined as nested do nothing
+            if (nested.length === 0) {
+                return callback();
+            }
+            eachSeries(nested, function (attr, cb) {
+                if (attr.many === true) {
+                    return cb();
+                }
+                return beforeSave_(attr, event, cb);
+            }, function (err) {
+                return callback(err);
+            });
+        } catch (err) {
             return callback(err);
-        });
+        }
     }
-    catch (err) {
-        return callback(err);
+
+    beforeRemove(event, callback) {
+        try {
+            //get attributes with nested property set to on
+            let nested = event.model.attributes.filter(function (x) {
+                //only if these attributes belong to current model
+                return x.nested && (x.model === event.model.name);
+            });
+            //if there are no attribute defined as nested, do nothing and exit
+            if (nested.length === 0) {
+                return callback();
+            }
+            eachSeries(nested, function (attr, cb) {
+                return beforeRemove_(attr, event, cb);
+            }, function (err) {
+                return callback(err);
+            });
+        } catch (err) {
+            return callback(err);
+        }
     }
-};
+    /**
+     * @param {DataEventArgs} event
+     * @param {Function} callback
+     */
+    afterSave(event, callback) {
+        try {
+            //get attributes with nested property set to on
+            let nested = event.model.attributes.filter(function (x) {
+                //only if these attributes belong to current model
+                return x.nested && (x.model === event.model.name);
+            });
+            //if there are no attribute defined as nested do nothing
+            if (nested.length === 0) {
+                return callback();
+            }
+            eachSeries(nested, function (attr, cb) {
+                // get mapping
+                let mapping = event.model.inferMapping(attr.name);
+                if (mapping && mapping.parentModel === event.model.name) {
+                    // check constraints
+                    let childModel = event.model.context.model(mapping.childModel);
+                    // if child model was found
+                    if (childModel &&
+                        // has constraints
+                        childModel.constraints &&
+                        // constraints is not empty
+                        childModel.constraints.length &&
+                        // and there is a constraint that has one key and this key is the mapping child field
+                        childModel.constraints.find(function (constraint) {
+                            return constraint.fields && constraint.fields.length === 1 && constraint.fields.indexOf(mapping.childField) === 0;
+                        })) {
+                        // try to save one-to-one nested association where parent model is the current model
+                        return afterSave_(attr, event, cb);
+                    }
+                }
+                if (attr.many === true) {
+                    return afterSaveMany_(attr, event, cb);
+                }
+                return cb();
+            }, function (err) {
+                return callback(err);
+            });
+        } catch (err) {
+            return callback(err);
+        }
+    }
+}
 
 /**
  * Handles after save event for one-to-one associations where the parent model is the current model.
@@ -333,16 +389,16 @@ DataNestedObjectListener.prototype.beforeRemove = function (event, callback) {
  */
 function afterSave_(attr, event, callback) {
     // get context
-    var context = event.model.context;
+    let context = event.model.context;
     // get attribute
-    var name = attr.property || attr.name;
+    let name = attr.property || attr.name;
     // if target object does not have a property with the specified name
-    if (event.target.hasOwnProperty(name) === false) {
+    if (hasOwnProperty(event.target, name) === false) {
         // return
         return callback();
     }
     // get nested object
-    var nestedObject = event.target[name];
+    let nestedObject = event.target[name];
     //if attribute is null or undefined and state is insert
     if (nestedObject == null && event.state === 1) {
         //do nothing
@@ -352,15 +408,15 @@ function afterSave_(attr, event, callback) {
      * get nested model
      * @type {DataModel}
      */
-    var nestedModel = context.model(attr.type);
+    let nestedModel = context.model(attr.type);
     //if target model cannot be found
-    if (_.isNil(nestedModel)) {
+    if (nestedModel == null) {
         // do nothing
         return callback();
     }
     // get mapping
-    var mapping = event.model.inferMapping(attr.name);
-    if (_.isNil(mapping)) {
+    let mapping = event.model.inferMapping(attr.name);
+    if (mapping == null) {
         // throw error
         return callback(new DataError('EASSOCIATION','Association mapping may not be empty.', null, event.model.name, attr.name));
     }
@@ -370,14 +426,14 @@ function afterSave_(attr, event, callback) {
         return callback();
     }
     // validate nested object
-    if (_.isArray(nestedObject)) {
+    if (Array.isArray(nestedObject)) {
         // throw error for invalid nested object type
         return callback(new DataError('EASSOCIATION', 'Expected object.', null, event.model.name, name));
     }
     // get in-process silent mode
-    var silent = event.model.isSilent();
+    let silent = event.model.isSilent();
     // get nested primary key
-    var nestedKey = nestedModel.getPrimaryKey();
+    let nestedKey = nestedModel.getPrimaryKey();
     if (nestedObject) {
         // safe delete identifier
         delete nestedObject[nestedKey];
@@ -392,8 +448,7 @@ function afterSave_(attr, event, callback) {
         }).catch(function(err) {
             return callback(err);
         });
-    }
-    else if (event.state === 2) {
+    } else if (event.state === 2) {
         if (nestedObject == null) {
             // try to find nested object
             return nestedModel.where(mapping.childField).equal(event.target[mapping.parentField])
@@ -401,8 +456,8 @@ function afterSave_(attr, event, callback) {
                     if (originalObject) {
                         // try to remove (with interactive user privileges)
                         return nestedModel.silent(silent).remove(originalObject).then(function() {
-                           // and return
-                           return callback();
+                            // and return
+                            return callback();
                         });
                     }
                     // else do nothing
@@ -410,8 +465,7 @@ function afterSave_(attr, event, callback) {
                 }).catch(function(err) {
                     return callback(err);
                 });
-        }
-        else {
+        } else {
             // update nested object (with interactive user privileges)
             return nestedModel.silent(silent).save(nestedObject).then(function() {
                 // and return
@@ -426,23 +480,23 @@ function afterSave_(attr, event, callback) {
 }
 
 function afterSaveMany_(attr, event, callback) {
-    var context = event.model.context;
-    var name = attr.property || attr.name;
-    var key = event.model.getPrimaryKey();
-    var nestedArr = event.target[name];
+    let context = event.model.context;
+    let name = attr.property || attr.name;
+    let key = event.model.getPrimaryKey();
+    let nestedArr = event.target[name];
     //if attribute is null or undefined
-    if (_.isNil(nestedArr)) {
+    if (nestedArr == null) {
         //do nothing
         return callback();
     }
     //if nested object is not an array
-    if (!_.isArray(nestedArr)) {
+    if (!Array.isArray(nestedArr)) {
         //throw exception
-        return callback(new DataError("EASSOCIATION","Invalid argument type. Expected array.",null, event.model.name, name));
+        return callback(new DataError('EASSOCIATION','Invalid argument type. Expected array.',null, event.model.name, name));
     }
     //get mapping
-    var mapping = event.model.inferMapping(attr.name);
-    if (_.isNil(mapping)) {
+    let mapping = event.model.inferMapping(attr.name);
+    if (mapping == null) {
         return callback(new DataError('EASSOCIATION','Association mapping may not be empty.', null, event.model.name, attr.name));
     }
     if (mapping.associationType === 'junction') {
@@ -452,15 +506,15 @@ function afterSaveMany_(attr, event, callback) {
         return callback(new DataError('EASSOCIATION','Invalid nested association type.', null, event.model.name, attr.name));
     }
     //get target model
-    var nestedModel = context.model(attr.type);
+    let nestedModel = context.model(attr.type);
     //if target model cannot be found
-    if (_.isNil(nestedModel)) {
+    if (nestedModel == null) {
         return callback();
     }
     // validate parent object association key
     if (mapping.parentField && mapping.parentField !== key) {
         // validate that parentField is unique constraint of parent model
-        var constraint = _.find(event.model.constraintCollection, function(constraint) {
+        let constraint = event.model.constraintCollection.find(function(constraint) {
             return constraint.type === 'unique' &&
                 constraint.fields &&
                 constraint.fields.length === 1 &&
@@ -471,11 +525,11 @@ function afterSaveMany_(attr, event, callback) {
         }
     }
     //get nested primary key
-    var nestedKey = nestedModel.getPrimaryKey();
+    let nestedKey = nestedModel.getPrimaryKey();
     //on insert
     if (event.state===1) {
         //enumerate nested objects and set state to new
-        _.forEach(nestedArr, function(x) {
+        nestedArr.forEach(function(x) {
             //delete identifier
             delete x[nestedKey];
             //force state to new ($state=1)
@@ -486,13 +540,14 @@ function afterSaveMany_(attr, event, callback) {
         //save nested objects
         nestedModel.silent().save(nestedArr, function(err) {
             //remove $state attribute
-            nestedArr.forEach(function(x) { delete x.$state; });
+            nestedArr.forEach(function(x) {
+                delete x.$state; 
+            });
             //and return
             callback(err);
         });
-    }
-    //on update
-    else if (event.state === 2) {
+    } else if (event.state === 2) {
+        //on update
         //first of all get original associated object, if any
         event.model.where(key)
             .equal(event.target[key])
@@ -508,18 +563,17 @@ function afterSaveMany_(attr, event, callback) {
                     return callback(new Error('Invalid object state.'));
                 }
                 //get original nested objects
-                var originalNestedArr = result[name] || [];
+                let originalNestedArr = result[name] || [];
                 //enumerate nested objects
-                _.forEach(nestedArr, function(x) {
-                    var obj = _.find(originalNestedArr, function (y) {
+                nestedArr.forEach(function(x) {
+                    let obj = originalNestedArr.find(function (y) {
                         return y[nestedKey] === x[nestedKey];
                     });
                     if (obj) {
                         // if object is marked for deletion set delete state
                         // otherwise set update state
                         x.$state = (x.$state === 4) ? 4 : 2;
-                    }
-                    else {
+                    } else {
                         // delete identifier
                         delete x[nestedKey];
                         // force set insert state ($state=1)
@@ -530,11 +584,11 @@ function afterSaveMany_(attr, event, callback) {
 
                 // automatically remove other nested items
                 // todo::this operation is going to be deprecated
-                _.forEach(originalNestedArr, function(x) {
-                    var obj = _.find(nestedArr, function(y) {
+                originalNestedArr.forEach(function(x) {
+                    let obj = nestedArr.find(function(y) {
                         return y[nestedKey] === x[nestedKey];
                     });
-                    if (_.isNil(obj)) {
+                    if (obj == null) {
                         // force state to delete ($state=4)
                         x.$state = 4;
                         nestedArr.push(x);
@@ -544,10 +598,10 @@ function afterSaveMany_(attr, event, callback) {
                 // and finally save objects
                 nestedModel.silent().save(nestedArr, function(err) {
                     //remove $state attribute
-                    _.remove(nestedArr, function(y) {
-                       return y.$state === 4;
+                    remove(nestedArr, function(y) {
+                        return y.$state === 4;
                     });
-                    _.forEach(nestedArr, function(x) {
+                    nestedArr.forEach(function(x) {
                         delete x.$state;
                     });
                     if (err) {
@@ -556,63 +610,9 @@ function afterSaveMany_(attr, event, callback) {
                     return callback();
                 });
             });
-    }
-    else {
+    } else {
         return callback();
     }
 }
 
-
-/**
- * @param {DataEventArgs} event
- * @param {Function} callback
- */
-DataNestedObjectListener.prototype.afterSave = function (event, callback) {
-    try {
-        //get attributes with nested property set to on
-        var nested = event.model.attributes.filter(function(x) {
-            //only if these attributes belong to current model
-            return x.nested && (x.model === event.model.name);
-        });
-        //if there are no attribute defined as nested do nothing
-        if (nested.length === 0) {
-            return callback();
-        }
-        async.eachSeries(nested, function(attr, cb) {
-            // get mapping
-            var mapping = event.model.inferMapping(attr.name);
-            if (mapping && mapping.parentModel === event.model.name) {
-                // check constraints
-                var childModel = event.model.context.model(mapping.childModel);
-                // if child model was found
-                if (childModel &&
-                    // has constraints
-                    childModel.constraints &&
-                    // constraints is not empty
-                    childModel.constraints.length &&
-                    // and there is a constraint that has one key and this key is the mapping child field
-                    childModel.constraints.find(function(constraint) {
-                        return constraint.fields && constraint.fields.length === 1 && constraint.fields.indexOf(mapping.childField) === 0;
-                    })) {
-                    // try to save one-to-one nested association where parent model is the current model
-                    return afterSave_(attr, event, cb);
-                }
-            }
-            if (attr.many===true) {
-                return afterSaveMany_(attr, event, cb);
-            }
-            return cb();
-        }, function(err) {
-            return callback(err);
-        });
-    }
-    catch (err) {
-        return callback(err);
-    }
-};
-
-
-if (typeof exports !== 'undefined')
-{
-    module.exports.DataNestedObjectListener = DataNestedObjectListener;
-}
+module.exports = {DataNestedObjectListener};

@@ -8,7 +8,7 @@ export declare interface DataValidationResult {
 }
 
 export declare class DataValidator {
-    setContext(context: DataContext);
+    setContext(context: DataContext): void;
     getContext(): DataContext;
     target: any;
 }
@@ -59,7 +59,7 @@ export declare class RangeValidator extends DataValidator {
 }
 
 export declare class DataTypeValidator extends DataValidator {
-    constructor(type: string);
+    constructor(type: string | any);
     type: string;
     message?: string;
     validateSync(val:any): DataValidationResult;

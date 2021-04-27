@@ -4,7 +4,6 @@
     "**/*[sS]pec.ts"
   ],
   "helpers": [
-    "helpers/module-alias.js",
     "helpers/babel.js",
     "helpers/ts.js",
     "helpers/reporter.js"

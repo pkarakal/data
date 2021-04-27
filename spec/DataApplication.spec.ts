@@ -3,7 +3,7 @@ import { ApplicationService } from '@themost/common';
 import {resolve} from 'path';
 
 class Service1 extends ApplicationService {
-    constructor(app) {
+    constructor(app: any) {
         super(app);
     }
     getMessage() {
@@ -12,7 +12,7 @@ class Service1 extends ApplicationService {
 }
 
 class Strategy1 extends ApplicationService {
-    constructor(app) {
+    constructor(app: any) {
         super(app);
     }
     getMessage() {

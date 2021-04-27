@@ -2,7 +2,7 @@
   "name": "@themost/d",
   "version": "3.0.0",
   "description": "MOST Web Framework Codename Blueshift - Data module",
-  "type": "core/index.d.ts",
+  "types": "core/index.d.ts",
   "module": "core/index.esm.js",
   "main": "core/index.umd.js",
   "scripts": {

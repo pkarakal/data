@@ -1,3 +1,4 @@
 # ignore build
 /core/
 /platform-server/
+/spec/

@@ -10,13 +10,13 @@
 var async = require('async');
 var sprintf = require('sprintf');
 var _ = require('lodash');
-var QueryUtils = require('@themost/query/utils').QueryUtils;
-var QueryField = require('@themost/query/query').QueryField;
-var QueryFieldRef = require('@themost/query/query').QueryFieldRef;
-var NotNullError = require("@themost/common/errors").NotNullError;
-var UniqueConstraintError = require("@themost/common/errors").UniqueConstraintError;
-var TraceUtils = require("@themost/common/utils").TraceUtils;
-var TextUtils = require("@themost/common/utils").TextUtils;
+var QueryUtils = require('@themost/query').QueryUtils;
+var QueryField = require('@themost/query').QueryField;
+var QueryFieldRef = require('@themost/query').QueryFieldRef;
+var NotNullError = require("@themost/common").NotNullError;
+var UniqueConstraintError = require("@themost/common").UniqueConstraintError;
+var TraceUtils = require("@themost/common").TraceUtils;
+var TextUtils = require("@themost/common").TextUtils;
 var DataCacheStrategy = require("./data-cache").DataCacheStrategy;
 /**
  * @module @themost/data/data-listeners

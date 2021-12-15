@@ -2,7 +2,7 @@ import { TestApplication } from './TestApplication';
 import { DataContext, DataFilterResolver } from '../index';
 import { resolve } from 'path';
 
-describe('DataObjectAssociationListener', () => {
+describe('DataFilterResolver', () => {
     let app: TestApplication;
     let context: DataContext;
     beforeAll((done) => {

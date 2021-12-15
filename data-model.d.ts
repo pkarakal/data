@@ -1,5 +1,5 @@
 // MOST Web Framework 2.0 Codename Blueshift Copyright (c) 2017-2020, THEMOST LP All rights reserved
-import {DataAssociationMapping, DataContext, DataField} from "./types";
+import {DataAssociationMapping, DataContext, DataField, SystemQueryOptions} from "./types";
 import {SequentialEventEmitter} from "@themost/common";
 import {DataQueryable} from "./data-queryable";
 import {DataObject} from "./data-object";
@@ -36,8 +36,8 @@ export declare class DataModel extends SequentialEventEmitter{
     where(attr: string): DataQueryable;
     search(text: string): DataQueryable;
     asQueryable(): DataQueryable;
-    filter(params: any, callback?: (err?: Error, res?: DataQueryable) => void): void;
-    filterAsync(params: any): Promise<DataQueryable>;
+    filter(params: SystemQueryOptions, callback?: (err?: Error, res?: DataQueryable) => void): void;
+    filterAsync(params: SystemQueryOptions): Promise<DataQueryable>;
     find(obj: any):DataQueryable;
     select(...attr: any[]): DataQueryable;
     orderBy(attr: any): DataQueryable;

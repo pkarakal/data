@@ -7,10 +7,10 @@
  * found in the LICENSE file at https://themost.io/license
  */
 ///
-var QueryEntity = require('@themost/query/query').QueryEntity;
-var QueryUtils = require('@themost/query/utils').QueryUtils;
+var QueryEntity = require('@themost/query').QueryEntity;
+var QueryUtils = require('@themost/query').QueryUtils;
 var async = require('async');
-var AccessDeniedError = require("@themost/common/errors").AccessDeniedError;
+var AccessDeniedError = require("@themost/common").AccessDeniedError;
 var DataConfigurationStrategy = require("./data-configuration").DataConfigurationStrategy;
 var _ = require("lodash");
 var DataCacheStrategy = require("./data-cache").DataCacheStrategy;

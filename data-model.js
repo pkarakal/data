@@ -13,8 +13,8 @@ var Symbol = require('symbol');
 var path = require("path");
 var pluralize = require("pluralize");
 var async = require('async');
-var QueryUtils = require('@themost/query/utils').QueryUtils;
-var OpenDataParser = require('@themost/query/odata').OpenDataParser;
+var QueryUtils = require('@themost/query').QueryUtils;
+var OpenDataParser = require('@themost/query').OpenDataParser;
 var types = require('./types');
 var DataAssociationMapping = require('./types').DataAssociationMapping;
 var dataListeners = require('./data-listeners');
@@ -28,13 +28,13 @@ var DataObjectAssociationListener = dataAssociations.DataObjectAssociationListen
 var DataModelView = require('./data-model-view').DataModelView;
 var DataFilterResolver = require('./data-filter-resolver').DataFilterResolver;
 var Q = require("q");
-var SequentialEventEmitter = require("@themost/common/emitter").SequentialEventEmitter;
-var LangUtils = require("@themost/common/utils").LangUtils;
-var TraceUtils = require("@themost/common/utils").TraceUtils;
-var DataError = require("@themost/common/errors").DataError;
+var SequentialEventEmitter = require("@themost/common").SequentialEventEmitter;
+var LangUtils = require("@themost/common").LangUtils;
+var TraceUtils = require("@themost/common").TraceUtils;
+var DataError = require("@themost/common").DataError;
 var DataConfigurationStrategy = require('./data-configuration').DataConfigurationStrategy;
 var ModelClassLoaderStrategy = require('./data-configuration').ModelClassLoaderStrategy;
-var ModuleLoader = require('@themost/common/config').ModuleLoaderStrategy;
+var ModuleLoader = require('@themost/common').ModuleLoaderStrategy;
 var mappingsProperty = Symbol('mappings');
 var DataPermissionEventListener = require('./data-permission').DataPermissionEventListener;
 var DataField = require('./types').DataField;
@@ -917,9 +917,21 @@ DataModel.prototype.filter = function(params, callback) {
         return Q.nbind(filterInternal, this)(params);
     }
 };
-
-DataModel.prototype.filterAsync = function(params, callback) {
-    return Q.nbind(filterInternal, this)(params);
+/**
+ * 
+ * @param {SystemQueryOptions} params 
+ * @returns {Promise<DataQueryable>}
+ */
+DataModel.prototype.filterAsync = function(params) {
+    var self = this;
+    return new Promise(function(resolve, reject) {
+        return filterInternal.bind(self)(params, function(err, result) {
+            if (err) {
+                return reject(err);
+            }
+            return resolve(result);
+        });
+    });
 };
 
 /**

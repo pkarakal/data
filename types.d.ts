@@ -211,3 +211,16 @@ declare interface DataCachingTypeEnum {
 export declare const DataCachingType: DataCachingTypeEnum;
 
 export declare const parsers: TypeParser;
+
+export declare interface SystemQueryOptions {
+    $filter?: string;
+    $select?: string;
+    $expand?: string;
+    $top?: number;
+    $skip?: number;
+    $orderby?: string;
+    $groupby?: string;
+    $inlinecount?:any;
+    $count?: any;
+    $levels?: number;
+}

@@ -823,68 +823,72 @@ function filterInternal(params, callback) {
                 q.query.prepare();
 
                 if (typeof params === 'object') {
-                    //apply query parameters
-                    var select = params.$select,
-                        skip = params.$skip || 0,
-                        orderBy = params.$orderby || params.$order,
-                        groupBy = params.$groupby || params.$group,
-                        expand = params.$expand,
-                        levels = parseInt(params.$levels),
-                        top = params.$top || params.$take;
-                    //select fields
-                    if (typeof select === 'string') {
-                        q.select.apply(q, select.split(',').map(function(x) {
-                            return x.replace(/^\s+|\s+$/g, '');
-                        }));
-                    }
-                    //apply group by fields
-                    if (typeof groupBy === 'string') {
-                        q.groupBy.apply(q, groupBy.split(',').map(function(x) {
-                            return x.replace(/^\s+|\s+$/g, '');
-                        }));
-                    }
-                    if ((typeof levels === 'number') && !isNaN(levels)) {
-                        //set expand levels
-                        q.levels(levels);
-                    }
-                    //set $skip
-                    q.skip(skip);
-                    if (top)
-                        q.query.take(top);
-                    //set caching
-                    if (params.$cache && self.caching === 'conditional') {
-                        q.cache(true);
-                    }
-                    //set $orderby
-                    if (orderBy) {
-                        orderBy.split(',').map(function(x) {
-                            return x.replace(/^\s+|\s+$/g, '');
-                        }).forEach(function(x) {
-                            if (/\s+desc$/i.test(x)) {
-                                q.orderByDescending(x.replace(/\s+desc$/i, ''));
-                            }
-                            else if (/\s+asc/i.test(x)) {
-                                q.orderBy(x.replace(/\s+asc/i, ''));
-                            }
-                            else {
-                                q.orderBy(x);
-                            }
-                        });
-                    }
-                    if (expand) {
-
-                        var resolver = require("./data-expand-resolver");
-                        var matches = resolver.testExpandExpression(expand);
-                        if (matches && matches.length>0) {
-                            q.expand.apply(q, matches);
+                    // normalize options
+                    var options = {
+                        $select: params.$select,
+                        $orderBy: params.$orderby || params.$order,
+                        $groupBy: params.$groupby || params.$group,
+                        $expand: params.$expand,
+                        $levels: parseInt(params.$levels),
+                        $skip: params.$skip || 0,
+                        $top: params.$top || params.$take
+                    };
+                    // parse options
+                    return Promise.all([
+                        new OpenDataParser().parseSelectSequenceAsync(options.$select), // results[0]
+                        new OpenDataParser().parseOrderBySequenceAsync(options.$orderBy), // results[1]
+                        new OpenDataParser().parseGroupBySequenceAsync(options.$groupBy), // results[2]
+                        new OpenDataParser().parseExpandSequenceAsync(options.$expand) // results[3]
+                    ]).then((results) => {
+                        // select attributes
+                        var select = results[0];
+                        if (Array.isArray(select)) {
+                            // get select arguments from source
+                            var selectArgs = select.map(function(item) {
+                                return item.source;
+                            });
+                            q.select.apply(q, selectArgs);
                         }
-                    }
-                    //return
-                    callback(null, q);
+                        // set order
+                        var orders = results[1];
+                        if (Array.isArray(orders)) {
+                            orders.forEach((order) => {
+                                if (order.direction === 'desc') {
+                                    q.orderByDescending(order.expression.source);
+                                } else {
+                                    q.orderBy(order.expression.source);
+                                }
+                            });
+                        }
+                        // set group by
+                        var groupBy = results[2];
+                        if (Array.isArray(groupBy)) {
+                            q.groupBy.apply(q, select.map(function(item) {
+                                return groupBy.source;
+                            }));
+                        }
+                        // set expand
+                        var expand = results[3];
+                        if (Array.isArray(expand)) {
+                            q.expand.apply(q, expand);
+                        }
+                        // set levels
+                        if (Number.isInteger(options.$levels) && options.$levels >= 0) {
+                            //set expand levels
+                            q.levels(options.$levels);
+                        }
+                        // set skip
+                        q.skip(options.$skip);
+                        // set top
+                        if (Number.isInteger(options.$top) && options.$top >= 0) {
+                            q.take(options.$top);
+                        }
+                        return callback(null, q);
+                    });
                 }
                 else {
                     //and finally return DataQueryable instance
-                    callback(null, q);
+                    return callback(null, q);
                 }
 
             }

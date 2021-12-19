@@ -41,8 +41,8 @@ describe('DataQueryable', () => {
     });
     it('should parse select', async () => {
         const query = await context.model('Order').filterAsync({
-            $select: `id,orderedItem/name as orderedItemName,
-            year(orderedItem/releaseDate) as releaseYear`,
+            $select: `id,orderedItem/name as orderedItemName,year(orderedItem/releaseDate) as releaseYear`,
+            $orderby: 'orderedItem/price desc',
             $filter: `orderedItem/name eq 'Samsung Galaxy S4'`
         });
         const items = await query.silent().getItems();
@@ -53,6 +53,7 @@ describe('DataQueryable', () => {
             releaseYear?: number
          }) => {
             expect(item.orderedItemName).toBe('Samsung Galaxy S4');
+            expect(item.releaseYear).toBeTruthy();
             const keys = Object.keys(item);
             expect(keys.length).toBe(3);
         });
